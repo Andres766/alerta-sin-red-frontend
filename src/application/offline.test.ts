@@ -82,6 +82,17 @@ describe('RiskService (network-first con respaldo en IndexedDB)', () => {
     expect((await new RiskService(api, snapshots).refresh()).source).toBe('cache')
   })
 
+  it('usa la caché si la plataforma responde una página HTML de error (4xx)', async () => {
+    await snapshots.save(snapshot)
+    net.responder = () => new Response('<html>Not Found</html>', { status: 404 })
+    expect((await new RiskService(api, snapshots).refresh()).source).toBe('cache')
+  })
+
+  it('sin caché y con el servidor caído explica que puede estar despertando', async () => {
+    net.responder = () => new Response('<html>Not Found</html>', { status: 404 })
+    await expect(new RiskService(api, snapshots).refresh()).rejects.toThrow(/despertando/)
+  })
+
   it('informa claramente si nunca se descargaron datos', async () => {
     net.online = false
     await expect(new RiskService(api, snapshots).refresh()).rejects.toBeInstanceOf(NoDataAvailableError)

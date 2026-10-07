@@ -10,8 +10,12 @@ export interface SnapshotResult {
 }
 
 export class NoDataAvailableError extends Error {
-  constructor() {
-    super('No hay datos guardados todavía. Conéctese al menos una vez para descargarlos.')
+  constructor(serverFailed = false) {
+    super(
+      serverFailed
+        ? 'El servidor no está disponible en este momento (puede estar despertando). Intente de nuevo en un minuto.'
+        : 'No hay datos guardados todavía. Conéctese al menos una vez para descargarlos.',
+    )
     this.name = 'NoDataAvailableError'
   }
 }
@@ -41,7 +45,7 @@ export class RiskService {
     } catch (error) {
       if (!RiskService.isRecoverable(error)) throw error
       const cached = await this.getCached()
-      if (!cached) throw new NoDataAvailableError()
+      if (!cached) throw new NoDataAvailableError(error instanceof ApiError)
       return cached
     }
   }
@@ -59,7 +63,7 @@ export class RiskService {
     } catch (error) {
       if (!RiskService.isRecoverable(error)) throw error
       const cached = await this.getCached()
-      if (!cached) throw new NoDataAvailableError()
+      if (!cached) throw new NoDataAvailableError(error instanceof ApiError)
       const zones = cached.snapshot.items
         .map(({ zone }) => ({ zone, distance_km: distanceKm(position, zone) }))
         .filter((z) => z.distance_km <= radiusKm)
@@ -68,7 +72,11 @@ export class RiskService {
     }
   }
 
+  /**
+   * Para LEER datos, cualquier fallo del servidor (caído, despertando, proxy con
+   * error) se resuelve con lo guardado: mejor un dato reciente que una pantalla vacía.
+   */
   private static isRecoverable(error: unknown): boolean {
-    return error instanceof NetworkError || (error instanceof ApiError && error.status >= 500)
+    return error instanceof NetworkError || error instanceof ApiError
   }
 }

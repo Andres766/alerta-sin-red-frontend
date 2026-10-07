@@ -77,7 +77,12 @@ export class ApiClient {
         code?: string
         detail?: unknown
       }
-      const detail = typeof payload.detail === 'string' ? payload.detail : 'Datos inválidos'
+      const detail =
+        typeof payload.detail === 'string'
+          ? payload.detail
+          : response.status === 422
+            ? 'Datos inválidos'
+            : `El servidor respondió con un error (HTTP ${response.status})`
       throw new ApiError(response.status, payload.code ?? 'http_error', detail)
     }
     return (await response.json()) as T
