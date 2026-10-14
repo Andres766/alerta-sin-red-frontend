@@ -1,0 +1,68 @@
+import { Link } from 'react-router-dom'
+import { countByLevel, LEVEL_ORDER, mostSevere, RISK_LEVELS } from '../domain/riskLevel'
+import { timeAgo } from '../domain/time'
+import type { ZoneRisk } from '../domain/types'
+import { IconAlert, IconChevronRight, IconShield } from './icons'
+
+/** Lo primero que ve la persona: ¿hay alguna alerta activa en la región? */
+export function RiskSummary({ items }: { items: ZoneRisk[] }) {
+  const worst = mostSevere(items)
+  const counts = countByLevel(items)
+
+  if (!worst?.assessment) {
+    return (
+      <section className="rounded-3xl bg-linear-to-br from-slate-700 to-slate-900 p-5 text-white shadow-lg">
+        <p className="text-sm font-medium text-slate-300">Estado de la región</p>
+        <p className="mt-1 text-xl font-bold">Aún no hay evaluaciones de riesgo</p>
+        <p className="mt-1 text-sm text-slate-300">El sistema evalúa las zonas cada hora.</p>
+      </section>
+    )
+  }
+
+  const info = RISK_LEVELS[worst.assessment.level]
+  const calm = info.severity === 0
+  return (
+    <section
+      aria-labelledby="estado-region"
+      className={`rounded-3xl bg-linear-to-br ${info.hero} p-5 text-white shadow-lg`}
+    >
+      <div className="flex items-start gap-3">
+        <span className="rounded-2xl bg-white/15 p-2.5">
+          {calm ? <IconShield className="size-6" /> : <IconAlert className="size-6" />}
+        </span>
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-white/80">Estado de la región</p>
+          <h2 id="estado-region" className="text-2xl font-bold leading-tight">
+            {calm ? 'Sin alertas activas' : `${info.alert} activa`}
+          </h2>
+        </div>
+      </div>
+
+      {!calm && (
+        <Link
+          to={`/zona/${worst.zone.id}`}
+          className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-white/15 px-4 py-3 transition hover:bg-white/25"
+        >
+          <span className="min-w-0">
+            <span className="block text-xs text-white/80">Zona más crítica</span>
+            <span className="block truncate font-semibold">{worst.zone.name}</span>
+          </span>
+          <IconChevronRight className="size-5 shrink-0" />
+        </Link>
+      )}
+
+      <dl className="mt-4 grid grid-cols-4 gap-2 text-center">
+        {[...LEVEL_ORDER].reverse().map((lvl) => (
+          <div key={lvl} className="rounded-xl bg-black/15 px-1 py-2">
+            <dt className="text-[11px] leading-tight text-white/80">{RISK_LEVELS[lvl].label}</dt>
+            <dd className="text-xl font-bold tabular-nums">{counts[lvl]}</dd>
+          </div>
+        ))}
+      </dl>
+      <p className="mt-3 text-xs text-white/75">
+        Evaluado {timeAgo(worst.assessment.assessed_at)} con el modelo de IA
+        {counts.SIN_EVALUAR > 0 && ` · ${counts.SIN_EVALUAR} zona(s) sin evaluar`}
+      </p>
+    </section>
+  )
+}

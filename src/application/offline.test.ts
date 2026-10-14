@@ -90,7 +90,7 @@ describe('RiskService (network-first con respaldo en IndexedDB)', () => {
 
   it('sin caché y con el servidor caído explica que puede estar despertando', async () => {
     net.responder = () => new Response('<html>Not Found</html>', { status: 404 })
-    await expect(new RiskService(api, snapshots).refresh()).rejects.toThrow(/despertando/)
+    await expect(new RiskService(api, snapshots).refresh()).rejects.toThrow(/reposo/)
   })
 
   it('informa claramente si nunca se descargaron datos', async () => {

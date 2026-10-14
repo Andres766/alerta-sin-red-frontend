@@ -13,7 +13,7 @@ export class NoDataAvailableError extends Error {
   constructor(serverFailed = false) {
     super(
       serverFailed
-        ? 'El servidor no está disponible en este momento (puede estar despertando). Intente de nuevo en un minuto.'
+        ? 'Conectando con el servidor… Si estaba en reposo puede tardar hasta un minuto; reintentamos automáticamente.'
         : 'No hay datos guardados todavía. Conéctese al menos una vez para descargarlos.',
     )
     this.name = 'NoDataAvailableError'
@@ -45,7 +45,7 @@ export class RiskService {
     } catch (error) {
       if (!RiskService.isRecoverable(error)) throw error
       const cached = await this.getCached()
-      if (!cached) throw new NoDataAvailableError(error instanceof ApiError)
+      if (!cached) throw new NoDataAvailableError(RiskService.serverFailed(error))
       return cached
     }
   }
@@ -63,7 +63,7 @@ export class RiskService {
     } catch (error) {
       if (!RiskService.isRecoverable(error)) throw error
       const cached = await this.getCached()
-      if (!cached) throw new NoDataAvailableError(error instanceof ApiError)
+      if (!cached) throw new NoDataAvailableError(RiskService.serverFailed(error))
       const zones = cached.snapshot.items
         .map(({ zone }) => ({ zone, distance_km: distanceKm(position, zone) }))
         .filter((z) => z.distance_km <= radiusKm)
@@ -76,6 +76,12 @@ export class RiskService {
    * Para LEER datos, cualquier fallo del servidor (caído, despertando, proxy con
    * error) se resuelve con lo guardado: mejor un dato reciente que una pantalla vacía.
    */
+  /** ¿Falló el servidor (y no la conexión del dispositivo)? */
+  private static serverFailed(error: unknown): boolean {
+    const deviceOnline = typeof navigator === 'undefined' || navigator.onLine
+    return error instanceof ApiError || (error instanceof NetworkError && deviceOnline)
+  }
+
   private static isRecoverable(error: unknown): boolean {
     return error instanceof NetworkError || error instanceof ApiError
   }

@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { HazardIcon } from '../components/HazardIcon'
+import { IconAlert, IconBell, IconSparkles } from '../components/icons'
 import { RiskBadge } from '../components/RiskBadge'
-import { FEATURE_LABEL, HAZARD_LABEL, RISK_LEVELS } from '../domain/riskLevel'
+import { FEATURE_LABEL, HAZARD_LABEL, LEVEL_ORDER, RISK_LEVELS } from '../domain/riskLevel'
 import { formatDateTime, timeAgo } from '../domain/time'
-import type { Assessment, RiskLevel } from '../domain/types'
+import type { Assessment } from '../domain/types'
 import { useSnapshot } from '../hooks/useSnapshot'
 import { API_BASE } from '../services'
-
-const LEVEL_ORDER: RiskLevel[] = ['BAJO', 'MODERADO', 'ALTO', 'MUY_ALTO']
 
 export function ZonePage() {
   const { zoneId } = useParams()
@@ -26,8 +26,8 @@ export function ZonePage() {
 
   if (!item) {
     return (
-      <p className="text-slate-600">
-        Zona no encontrada. <Link to="/" className="underline">Volver</Link>
+      <p className="rounded-2xl bg-white p-5 text-slate-600">
+        Zona no encontrada. <Link to="/" className="font-semibold underline">Volver al inicio</Link>
       </p>
     )
   }
@@ -35,87 +35,121 @@ export function ZonePage() {
   const info = assessment ? RISK_LEVELS[assessment.level] : null
 
   return (
-    <article className="space-y-6">
-      <Link to="/" className="text-sm text-slate-600 hover:underline">← Todas las zonas</Link>
-      <header>
-        <p className="text-sm text-slate-500">
+    <article className="space-y-5">
+      <Link to="/" className="inline-block text-sm font-medium text-slate-600 hover:underline">
+        ← Todas las zonas
+      </Link>
+
+      <header
+        className={`rounded-3xl bg-linear-to-br p-5 text-white shadow-lg ${info?.hero ?? 'from-slate-600 to-slate-800'}`}
+      >
+        <p className="flex items-center gap-2 text-sm text-white/85">
+          <HazardIcon hazard={zone.hazard_type} className="size-4" />
           {HAZARD_LABEL[zone.hazard_type]} · {zone.municipality}, {zone.department}
         </p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight">{zone.name}</h1>
-      </header>
-
-      <section className={`rounded-2xl border p-5 ${info?.surface ?? 'border-slate-200 bg-white'}`}>
-        <div className="flex flex-wrap items-center gap-3">
-          <RiskBadge level={assessment?.level ?? null} large />
-          {info && <span className="font-semibold">{info.alert}</span>}
-        </div>
-        {assessment ? (
+        <h1 className="mt-1 text-2xl font-bold leading-tight">{zone.name}</h1>
+        {assessment && info ? (
           <>
-            <p className="mt-2 text-sm text-slate-600">
-              Evaluado {timeAgo(assessment.assessed_at)} ({formatDateTime(assessment.assessed_at)})
-              · modelo {assessment.model_version} · clima {assessment.weather_source}
+            <div className="mt-4 flex items-end justify-between gap-4">
+              <div>
+                <p className="text-sm text-white/80">{info.alert}</p>
+                <p className="text-3xl font-extrabold">Riesgo {info.label.toLowerCase()}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-3xl font-extrabold tabular-nums">{Math.round(assessment.probability * 100)}%</p>
+                <p className="text-xs text-white/80">confianza del modelo</p>
+              </div>
+            </div>
+            <p className="mt-3 text-xs text-white/75">
+              Evaluado {timeAgo(assessment.assessed_at)} ({formatDateTime(assessment.assessed_at)}) ·
+              modelo {assessment.model_version}
             </p>
-            <h2 className="mt-5 font-semibold">¿Qué hacer?</h2>
-            <ul className="mt-2 list-disc space-y-1 pl-5">
-              {info?.recommendations.map((r) => <li key={r}>{r}</li>)}
-            </ul>
           </>
         ) : (
-          <p className="mt-2 text-slate-600">Esta zona aún no ha sido evaluada.</p>
+          <p className="mt-3 text-white/85">Esta zona aún no ha sido evaluada.</p>
         )}
-      </section>
+      </header>
+
+      {assessment && info && (
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="flex items-center gap-2 font-bold">
+            <IconAlert className="size-5 text-slate-500" /> ¿Qué hacer?
+          </h2>
+          <ol className="mt-3 space-y-2">
+            {info.recommendations.map((r, i) => (
+              <li key={r} className="flex gap-3">
+                <span className={`grid size-6 shrink-0 place-items-center rounded-full text-xs font-bold ${info.badge}`}>
+                  {i + 1}
+                </span>
+                <span>{r}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
 
       {assessment && (
-        <>
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
-            <h2 className="font-semibold">¿Por qué este nivel?</h2>
-            {assessment.key_factors.length ? (
-              <ul className="mt-2 list-disc space-y-1 pl-5 text-slate-700">
-                {assessment.key_factors.map((f) => <li key={f}>{f}</li>)}
-              </ul>
-            ) : (
-              <p className="mt-2 text-slate-600">No hay factores de riesgo destacados.</p>
-            )}
-
-            <h3 className="mt-5 text-sm font-semibold text-slate-700">Probabilidad por nivel (modelo de IA)</h3>
-            <div className="mt-2 space-y-1.5">
-              {LEVEL_ORDER.map((lvl) => {
-                const p = assessment.probabilities[lvl] ?? 0
-                return (
-                  <div key={lvl} className="flex items-center gap-2 text-sm">
-                    <span className="w-20 shrink-0 text-slate-600">{RISK_LEVELS[lvl].label}</span>
-                    <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-100">
-                      <div className={`h-full ${RISK_LEVELS[lvl].badge}`} style={{ width: `${p * 100}%` }} />
-                    </div>
-                    <span className="w-10 text-right tabular-nums">{Math.round(p * 100)}%</span>
-                  </div>
-                )
-              })}
-            </div>
-          </section>
-
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
-            <h2 className="font-semibold">Variables de entrada</h2>
-            <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-4">
-              {Object.entries(assessment.features).map(([key, value]) => (
-                <div key={key}>
-                  <dt className="text-slate-500">{FEATURE_LABEL[key]?.label ?? key}</dt>
-                  <dd className="font-semibold tabular-nums">
-                    {Number(value).toLocaleString('es-CO', { maximumFractionDigits: 2 })}{' '}
-                    {FEATURE_LABEL[key]?.unit}
-                  </dd>
-                </div>
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="flex items-center gap-2 font-bold">
+            <IconSparkles className="size-5 text-slate-500" /> ¿Por qué este nivel?
+          </h2>
+          {assessment.key_factors.length ? (
+            <ul className="mt-3 flex flex-wrap gap-2">
+              {assessment.key_factors.map((f) => (
+                <li key={f} className="rounded-full bg-slate-100 px-3 py-1.5 text-sm text-slate-700">{f}</li>
               ))}
-            </dl>
-          </section>
-        </>
+            </ul>
+          ) : (
+            <p className="mt-2 text-slate-600">No hay factores de riesgo destacados.</p>
+          )}
+
+          <h3 className="mt-5 text-sm font-semibold text-slate-700">Probabilidad por nivel (modelo de IA)</h3>
+          <div className="mt-2 space-y-2">
+            {LEVEL_ORDER.map((lvl) => {
+              const p = assessment.probabilities[lvl] ?? 0
+              return (
+                <div key={lvl} className="flex items-center gap-3 text-sm">
+                  <span className="w-16 shrink-0 text-slate-600">{RISK_LEVELS[lvl].label}</span>
+                  <div className="h-3 flex-1 overflow-hidden rounded-full bg-slate-100">
+                    <div className={`h-full rounded-full ${RISK_LEVELS[lvl].stripe}`} style={{ width: `${p * 100}%` }} />
+                  </div>
+                  <span className="w-10 text-right font-semibold tabular-nums">{Math.round(p * 100)}%</span>
+                </div>
+              )
+            })}
+          </div>
+
+          <h3 className="mt-6 text-sm font-semibold text-slate-700">Variables de entrada</h3>
+          <dl className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {Object.entries(assessment.features).map(([key, value]) => (
+              <div key={key} className="rounded-xl bg-slate-50 p-3">
+                <dt className="text-xs text-slate-500">{FEATURE_LABEL[key]?.label ?? key}</dt>
+                <dd className="mt-0.5 font-bold tabular-nums">
+                  {Number(value).toLocaleString('es-CO', { maximumFractionDigits: 2 })}{' '}
+                  <span className="text-xs font-normal text-slate-500">{FEATURE_LABEL[key]?.unit}</span>
+                </dd>
+              </div>
+            ))}
+          </dl>
+          <p className="mt-3 text-xs text-slate-500">Fuente del clima: {assessment.weather_source}</p>
+        </section>
       )}
 
       {history && history.length > 1 && (
-        <section className="rounded-2xl border border-slate-200 bg-white p-5">
-          <h2 className="font-semibold">Evaluaciones recientes</h2>
-          <ol className="mt-3 divide-y divide-slate-100 text-sm">
-            {history.map((h) => (
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="font-bold">Evolución reciente</h2>
+          <div className="mt-3 flex h-16 items-end gap-1" aria-hidden>
+            {[...history].reverse().map((h) => (
+              <div
+                key={h.id}
+                title={`${formatDateTime(h.assessed_at)}: ${RISK_LEVELS[h.level].label}`}
+                className={`flex-1 rounded-t ${RISK_LEVELS[h.level].stripe}`}
+                style={{ height: `${25 + RISK_LEVELS[h.level].severity * 25}%` }}
+              />
+            ))}
+          </div>
+          <ol className="mt-4 divide-y divide-slate-100 text-sm">
+            {history.slice(0, 5).map((h) => (
               <li key={h.id} className="flex items-center justify-between py-2">
                 <span className="text-slate-600">{formatDateTime(h.assessed_at)}</span>
                 <RiskBadge level={h.level} />
@@ -127,9 +161,9 @@ export function ZonePage() {
 
       <Link
         to={`/suscribirme?zona=${zone.id}`}
-        className="block rounded-xl bg-slate-900 px-4 py-3 text-center font-semibold text-white"
+        className="flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3.5 font-semibold text-white shadow-sm transition hover:bg-slate-800"
       >
-        Recibir alertas por SMS de esta zona
+        <IconBell className="size-5" /> Recibir alertas por SMS de esta zona
       </Link>
     </article>
   )

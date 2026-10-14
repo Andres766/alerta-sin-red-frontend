@@ -10,9 +10,25 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 antialiased;
+    @apply bg-slate-100 text-slate-900 antialiased;
   }
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-sky-600;
   }
+}
+
+/* Pulso de las zonas en alerta naranja o roja en el mapa esquemático. */
+@keyframes map-pulse {
+  0% { transform: scale(1); opacity: 0.45; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+.map-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: map-pulse 1.8s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-pulse { animation: none; }
+  * { scroll-behavior: auto !important; }
 }
