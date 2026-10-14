@@ -54,7 +54,14 @@ export interface SubscriptionResponse {
   zone_id: string
   phone_masked: string
   active: boolean
+  /** Código de baja: el servidor lo entrega una sola vez (null si ya existía). */
+  cancel_token: string | null
   message: string
+}
+
+export interface CancelRequest {
+  subscription_id: string
+  cancel_token: string
 }
 
 export interface AlertRecord {

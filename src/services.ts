@@ -10,18 +10,21 @@ import { ApiClient } from './infrastructure/http/ApiClient'
 import { getDatabase } from './infrastructure/storage/database'
 import { OutboxRepository } from './infrastructure/storage/OutboxRepository'
 import { SnapshotRepository } from './infrastructure/storage/SnapshotRepository'
+import { SubscriptionRepository } from './infrastructure/storage/SubscriptionRepository'
 
 export const API_BASE = '/api/v1'
 
 const api = new ApiClient(API_BASE)
 const snapshots = new SnapshotRepository(getDatabase)
 export const outboxRepository = new OutboxRepository(getDatabase)
+const subscriptions = new SubscriptionRepository(getDatabase)
 
 export const riskService = new RiskService(api, snapshots)
 export const subscriptionService = new SubscriptionService(
   api,
   outboxRepository,
+  subscriptions,
   new BackgroundSyncScheduler(),
 )
-export const outboxProcessor = new OutboxProcessor(api, outboxRepository)
+export const outboxProcessor = new OutboxProcessor(api, outboxRepository, subscriptions)
 export const adminService = new AdminService(api)

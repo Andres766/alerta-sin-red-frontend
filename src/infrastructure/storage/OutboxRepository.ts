@@ -1,4 +1,4 @@
-import type { SubscriptionRequest } from '../../domain/types'
+import type { CancelRequest, SubscriptionRequest } from '../../domain/types'
 import type { AppDatabase, OutboxItem } from './database'
 
 /**
@@ -8,14 +8,12 @@ import type { AppDatabase, OutboxItem } from './database'
 export class OutboxRepository {
   constructor(private readonly db: () => Promise<AppDatabase>) {}
 
-  async enqueueSubscription(payload: SubscriptionRequest): Promise<number> {
-    const item: OutboxItem = {
-      kind: 'subscription',
-      payload,
-      createdAt: new Date().toISOString(),
-      attempts: 0,
-    }
-    return (await this.db()).add('outbox', item)
+  enqueueSubscription(payload: SubscriptionRequest): Promise<number> {
+    return this.add({ kind: 'subscription', payload })
+  }
+
+  enqueueCancel(payload: CancelRequest): Promise<number> {
+    return this.add({ kind: 'cancel', payload })
   }
 
   async pending(): Promise<OutboxItem[]> {
@@ -28,5 +26,10 @@ export class OutboxRepository {
 
   async markFailed(item: OutboxItem, error: string): Promise<void> {
     await (await this.db()).put('outbox', { ...item, attempts: item.attempts + 1, lastError: error })
+  }
+
+  private async add(action: Pick<OutboxItem, 'kind' | 'payload'>): Promise<number> {
+    const item = { ...action, createdAt: new Date().toISOString(), attempts: 0 } as OutboxItem
+    return (await this.db()).add('outbox', item)
   }
 }

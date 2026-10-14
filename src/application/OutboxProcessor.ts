@@ -1,6 +1,8 @@
 import type { SubscriptionResponse } from '../domain/types'
 import { ApiError, NetworkError, type ApiClient } from '../infrastructure/http/ApiClient'
+import type { OutboxItem } from '../infrastructure/storage/database'
 import type { OutboxRepository } from '../infrastructure/storage/OutboxRepository'
+import type { SubscriptionRepository } from '../infrastructure/storage/SubscriptionRepository'
 
 export interface FlushResult {
   sent: number
@@ -14,7 +16,8 @@ export interface FlushResult {
  * Vacía la bandeja de salida. Lo ejecuta el Service Worker (Background Sync)
  * o la página al detectar el evento `online` (respaldo para navegadores sin
  * Background Sync, como Firefox y Safari). Es seguro ejecutarlo varias veces:
- * el backend trata la suscripción de forma idempotente.
+ * el backend trata la suscripción de forma idempotente y una baja repetida
+ * responde 404, que aquí se considera resuelta.
  */
 export class OutboxProcessor {
   private running: Promise<FlushResult> | null = null
@@ -22,6 +25,7 @@ export class OutboxProcessor {
   constructor(
     private readonly api: ApiClient,
     private readonly outbox: OutboxRepository,
+    private readonly subscriptions: SubscriptionRepository,
     private readonly maxAttempts = 8,
   ) {}
 
@@ -38,7 +42,7 @@ export class OutboxProcessor {
     for (const [index, item] of items.entries()) {
       if (item.id === undefined) continue
       try {
-        await this.api.post<SubscriptionResponse>('/subscriptions', item.payload)
+        await this.send(item)
         await this.outbox.remove(item.id)
         result.sent++
       } catch (error) {
@@ -59,5 +63,21 @@ export class OutboxProcessor {
       }
     }
     return result
+  }
+
+  private async send(item: OutboxItem): Promise<void> {
+    if (item.kind === 'subscription') {
+      const response = await this.api.post<SubscriptionResponse>('/subscriptions', item.payload)
+      await this.subscriptions.saveFromResponse(response)
+      return
+    }
+    const { subscription_id, cancel_token } = item.payload
+    try {
+      await this.api.post(`/subscriptions/${subscription_id}/cancel`, { cancel_token })
+    } catch (error) {
+      // 404: el código ya no es válido (baja hecha antes): el objetivo se cumplió.
+      if (!(error instanceof ApiError && error.status === 404)) throw error
+    }
+    await this.subscriptions.remove(subscription_id)
   }
 }

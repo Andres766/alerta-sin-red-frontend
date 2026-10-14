@@ -85,6 +85,7 @@ export class ApiClient {
             : `El servidor respondió con un error (HTTP ${response.status})`
       throw new ApiError(response.status, payload.code ?? 'http_error', detail)
     }
+    if (response.status === 204) return undefined as T // sin contenido (p. ej. baja)
     return (await response.json()) as T
   }
 }

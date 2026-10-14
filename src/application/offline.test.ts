@@ -6,6 +6,7 @@ import { ApiClient, ApiError } from '../infrastructure/http/ApiClient'
 import { getDatabase } from '../infrastructure/storage/database'
 import { OutboxRepository } from '../infrastructure/storage/OutboxRepository'
 import { SnapshotRepository } from '../infrastructure/storage/SnapshotRepository'
+import { SubscriptionRepository } from '../infrastructure/storage/SubscriptionRepository'
 import { OutboxProcessor } from './OutboxProcessor'
 import { NoDataAvailableError, RiskService } from './RiskService'
 import { SubscriptionService, type SyncScheduler } from './SubscriptionService'
@@ -55,6 +56,7 @@ let net: FakeNetwork
 let api: ApiClient
 const snapshots = new SnapshotRepository(getDatabase)
 const outbox = new OutboxRepository(getDatabase)
+const subscriptions = new SubscriptionRepository(getDatabase)
 
 beforeEach(async () => {
   net = new FakeNetwork()
@@ -62,6 +64,7 @@ beforeEach(async () => {
   const db = await getDatabase()
   await db.clear('snapshot')
   await db.clear('outbox')
+  await db.clear('subscriptions')
 })
 
 describe('RiskService (network-first con respaldo en IndexedDB)', () => {
@@ -121,7 +124,7 @@ describe('Suscripción offline (Outbox + sincronización)', () => {
 
   it('sin red la guarda en la bandeja y pide Background Sync', async () => {
     net.online = false
-    const outcome = await new SubscriptionService(api, outbox, scheduler).subscribe(request)
+    const outcome = await new SubscriptionService(api, outbox, subscriptions, scheduler).subscribe(request)
     expect(outcome.status).toBe('queued')
     expect(await outbox.pending()).toHaveLength(1)
     expect(scheduler.scheduled).toBe(1)
@@ -129,8 +132,8 @@ describe('Suscripción offline (Outbox + sincronización)', () => {
 
   it('al volver la red envía lo pendiente y vacía la bandeja', async () => {
     await outbox.enqueueSubscription(request)
-    net.responder = () => json({ id: 's1', phone_masked: '+57 300 *** **67' }, 201)
-    const result = await new OutboxProcessor(api, outbox).flush()
+    net.responder = () => json({ id: 's1', zone_id: 'z-pasto', phone_masked: '+57 300 *** **67', cancel_token: 'tok-1' }, 201)
+    const result = await new OutboxProcessor(api, outbox, subscriptions).flush()
     expect(result).toMatchObject({ sent: 1, remaining: 0, offline: false })
     expect(await outbox.pending()).toHaveLength(0)
   })
@@ -138,7 +141,7 @@ describe('Suscripción offline (Outbox + sincronización)', () => {
   it('si sigue sin red conserva los pendientes para reintentar', async () => {
     await outbox.enqueueSubscription(request)
     net.online = false
-    const result = await new OutboxProcessor(api, outbox).flush()
+    const result = await new OutboxProcessor(api, outbox, subscriptions).flush()
     expect(result.offline).toBe(true)
     expect(await outbox.pending()).toHaveLength(1)
   })
@@ -146,7 +149,7 @@ describe('Suscripción offline (Outbox + sincronización)', () => {
   it('descarta solicitudes que el servidor rechaza de forma permanente (4xx)', async () => {
     await outbox.enqueueSubscription(request)
     net.responder = () => json({ code: 'zone_not_found', detail: 'Recurso no encontrado' }, 404)
-    const result = await new OutboxProcessor(api, outbox).flush()
+    const result = await new OutboxProcessor(api, outbox, subscriptions).flush()
     expect(result.rejected).toEqual(['Recurso no encontrado'])
     expect(await outbox.pending()).toHaveLength(0)
   })
@@ -154,9 +157,71 @@ describe('Suscripción offline (Outbox + sincronización)', () => {
   it('reintenta errores transitorios (5xx) sin perder la solicitud', async () => {
     await outbox.enqueueSubscription(request)
     net.responder = () => json({}, 502)
-    await new OutboxProcessor(api, outbox).flush()
+    await new OutboxProcessor(api, outbox, subscriptions).flush()
     const [item] = await outbox.pending()
     expect(item?.attempts).toBe(1)
+  })
+})
+
+describe('Baja de suscripciones (código guardado en el dispositivo)', () => {
+  const scheduler: SyncScheduler = { schedule: async () => true }
+  const created = { id: 's1', zone_id: 'z-pasto', phone_masked: '+57 300 *** **67', cancel_token: 'tok-1', active: true, message: '' }
+
+  it('guarda el código de baja al suscribirse con red', async () => {
+    net.responder = () => json(created, 201)
+    await new SubscriptionService(api, outbox, subscriptions, scheduler).subscribe(request)
+    const [stored] = await subscriptions.list()
+    expect(stored).toMatchObject({ id: 's1', cancelToken: 'tok-1', phoneMasked: '+57 300 *** **67' })
+  })
+
+  it('no guarda nada si el número ya estaba suscrito (sin código)', async () => {
+    net.responder = () => json({ ...created, cancel_token: null }, 201)
+    await new SubscriptionService(api, outbox, subscriptions, scheduler).subscribe(request)
+    expect(await subscriptions.list()).toHaveLength(0)
+  })
+
+  it('la suscripción enviada desde la bandeja también guarda su código', async () => {
+    await outbox.enqueueSubscription(request)
+    net.responder = () => json(created, 201)
+    await new OutboxProcessor(api, outbox, subscriptions).flush()
+    expect((await subscriptions.list()).map((s) => s.id)).toEqual(['s1'])
+  })
+
+  it('da de baja con red y borra el registro local', async () => {
+    await subscriptions.saveFromResponse(created as never)
+    net.responder = (url, init) => {
+      expect(url).toBe('/api/v1/subscriptions/s1/cancel')
+      expect(JSON.parse(String(init?.body))).toEqual({ cancel_token: 'tok-1' })
+      return new Response(null, { status: 204 })
+    }
+    const service = new SubscriptionService(api, outbox, subscriptions, scheduler)
+    const [stored] = await subscriptions.list()
+    expect(await service.cancel(stored!)).toBe('cancelled')
+    expect(await subscriptions.list()).toHaveLength(0)
+  })
+
+  it('sin red la baja queda pendiente y se completa al sincronizar', async () => {
+    await subscriptions.saveFromResponse(created as never)
+    const service = new SubscriptionService(api, outbox, subscriptions, scheduler)
+    const [stored] = await subscriptions.list()
+
+    net.online = false
+    expect(await service.cancel(stored!)).toBe('queued')
+    expect((await subscriptions.get('s1'))?.cancelPending).toBe(true)
+
+    net.online = true
+    net.responder = () => new Response(null, { status: 204 })
+    const result = await new OutboxProcessor(api, outbox, subscriptions).flush()
+    expect(result.sent).toBe(1)
+    expect(await subscriptions.list()).toHaveLength(0)
+  })
+
+  it('si la baja ya se había hecho (404) igual limpia el registro', async () => {
+    await subscriptions.saveFromResponse(created as never)
+    net.responder = () => json({ code: 'not_found', detail: 'Recurso no encontrado' }, 404)
+    const [stored] = await subscriptions.list()
+    expect(await new SubscriptionService(api, outbox, subscriptions, scheduler).cancel(stored!)).toBe('cancelled')
+    expect(await subscriptions.list()).toHaveLength(0)
   })
 })
 

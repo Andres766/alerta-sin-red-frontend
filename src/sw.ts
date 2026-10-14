@@ -28,6 +28,7 @@ import { ApiClient } from './infrastructure/http/ApiClient'
 import { getDatabase } from './infrastructure/storage/database'
 import { OutboxRepository } from './infrastructure/storage/OutboxRepository'
 import { SnapshotRepository } from './infrastructure/storage/SnapshotRepository'
+import { SubscriptionRepository } from './infrastructure/storage/SubscriptionRepository'
 
 declare const self: ServiceWorkerGlobalScope
 
@@ -38,7 +39,11 @@ interface SyncEvent extends ExtendableEvent {
 const API_BASE = '/api/v1'
 const api = new ApiClient(API_BASE)
 const snapshots = new SnapshotRepository(getDatabase)
-const outbox = new OutboxProcessor(api, new OutboxRepository(getDatabase))
+const outbox = new OutboxProcessor(
+  api,
+  new OutboxRepository(getDatabase),
+  new SubscriptionRepository(getDatabase),
+)
 
 // ---- App shell ----------------------------------------------------------------
 cleanupOutdatedCaches()
