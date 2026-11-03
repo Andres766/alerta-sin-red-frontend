@@ -9,6 +9,16 @@
 }
 
 @layer base {
+  /* En móvil la barra inferior es fija: el navegador deja este margen al desplazar
+     hacia un elemento enfocado, para que nunca quede tapado (WCAG 2.4.11). */
+  html {
+    scroll-padding-bottom: 6rem;
+  }
+  @media (min-width: 40rem) {
+    html {
+      scroll-padding-bottom: 0;
+    }
+  }
   body {
     @apply bg-slate-100 text-slate-900 antialiased;
   }
