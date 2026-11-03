@@ -89,3 +89,28 @@ export interface TokenResponse {
 
 /** Origen de los datos mostrados: clave para que el usuario sepa si está viendo algo viejo. */
 export type DataSource = 'network' | 'cache'
+
+export type Role = 'ADMIN' | 'OPERATOR'
+
+export interface UserAccount {
+  id: string
+  email: string
+  role: Role
+  active: boolean
+  created_at: string
+}
+
+export interface NewUserAccount {
+  email: string
+  password: string
+  role: Role
+}
+
+export interface DashboardStats {
+  zones: number
+  active_subscribers: number
+  zones_by_level: Record<RiskLevel | 'SIN_EVALUAR', number>
+  sms_sent_24h: number
+  sms_failed_24h: number
+  last_evaluation_at: string | null
+}

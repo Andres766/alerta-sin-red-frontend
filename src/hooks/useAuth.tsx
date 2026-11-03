@@ -1,16 +1,19 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
+import type { UserAccount } from '../domain/types'
 import { adminService } from '../services'
 
 interface Session {
   token: string
-  role: string
+  user: UserAccount
   expiresAt: number
 }
 
 interface AuthState {
   session: Session | null
+  /** Motivo del último cierre de sesión (p. ej. token vencido o cuenta desactivada). */
+  notice: string | null
   login: (email: string, password: string) => Promise<void>
-  logout: () => void
+  logout: (reason?: string) => void
 }
 
 const AuthContext = createContext<AuthState | null>(null)
@@ -22,22 +25,34 @@ const AuthContext = createContext<AuthState | null>(null)
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
 
   const login = useCallback(async (email: string, password: string) => {
     const t = await adminService.login(email, password)
-    setSession({ token: t.access_token, role: t.role, expiresAt: Date.now() + t.expires_in * 1000 })
+    // /auth/me confirma la sesión y devuelve quién es y su rol vigente.
+    const user = await adminService.me(t.access_token)
+    setNotice(null)
+    setSession({ token: t.access_token, user, expiresAt: Date.now() + t.expires_in * 1000 })
   }, [])
 
-  const logout = useCallback(() => setSession(null), [])
+  const logout = useCallback((reason?: string) => {
+    setSession(null)
+    setNotice(reason ?? null)
+  }, [])
 
   // Cierre automático al expirar el token.
   useEffect(() => {
     if (!session) return
-    const timer = setTimeout(logout, Math.max(session.expiresAt - Date.now(), 0))
+    const timer = setTimeout(
+      () => logout('Su sesión expiró por seguridad. Ingrese de nuevo.'),
+      Math.max(session.expiresAt - Date.now(), 0),
+    )
     return () => clearTimeout(timer)
   }, [session, logout])
 
-  return <AuthContext.Provider value={{ session, login, logout }}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={{ session, notice, login, logout }}>{children}</AuthContext.Provider>
+  )
 }
 
 export function useAuth(): AuthState {
