@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { HazardIcon } from '../components/HazardIcon'
-import { IconAlert, IconBell, IconSparkles } from '../components/icons'
+import { IconAlert, IconBell, IconSparkles, IconStar } from '../components/icons'
 import { RiskBadge } from '../components/RiskBadge'
 import { FEATURE_LABEL, HAZARD_LABEL, LEVEL_ORDER, RISK_LEVELS } from '../domain/riskLevel'
 import { formatDateTime, timeAgo } from '../domain/time'
 import type { Assessment, ZoneRisk } from '../domain/types'
+import { useFavoriteZone } from '../hooks/useFavoriteZone'
 import { useSnapshot } from '../hooks/useSnapshot'
 import { riskService } from '../services'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
@@ -13,6 +14,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle'
 export function ZonePage() {
   const { zoneId } = useParams()
   const { data } = useSnapshot()
+  const { favoriteId, setFavorite } = useFavoriteZone()
   const fromSnapshot = data?.snapshot.items.find((i) => i.zone.id === zoneId)
   // Enlace directo a una zona que este dispositivo aún no tiene guardada.
   const [fetched, setFetched] = useState<{ id: string; item: ZoneRisk | null; error?: string } | null>(null)
@@ -62,9 +64,19 @@ export function ZonePage() {
 
   return (
     <article className="space-y-5">
-      <Link to="/" className="inline-block text-sm font-medium text-slate-600 hover:underline">
-        ← Todas las zonas
-      </Link>
+      <div className="flex items-center justify-between gap-2">
+        <Link to="/" className="text-sm font-medium text-slate-600 hover:underline">
+          ← Todas las zonas
+        </Link>
+        <button
+          onClick={() => void setFavorite(favoriteId === zone.id ? null : zone.id)}
+          aria-pressed={favoriteId === zone.id}
+          className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-sm font-semibold transition ${favoriteId === zone.id ? 'border-amber-300 bg-amber-50 text-amber-800' : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'}`}
+        >
+          <IconStar filled={favoriteId === zone.id} className="size-4" />
+          {favoriteId === zone.id ? 'Es mi zona' : 'Fijar como mi zona'}
+        </button>
+      </div>
 
       <header
         className={`rounded-3xl bg-linear-to-br p-5 text-white shadow-lg ${info?.hero ?? 'from-slate-600 to-slate-800'}`}

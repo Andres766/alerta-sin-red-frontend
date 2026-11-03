@@ -34,14 +34,21 @@ export interface StoredSubscription {
   cancelPending?: boolean
 }
 
+/** Preferencia del dispositivo (clave-valor), p. ej. la zona favorita. */
+export interface StoredPreference {
+  key: string
+  value: string
+}
+
 interface AlertaSinRedDB extends DBSchema {
   snapshot: { key: 'latest'; value: StoredSnapshot }
   outbox: { key: number; value: OutboxItem; indexes: { byCreatedAt: string } }
   subscriptions: { key: string; value: StoredSubscription }
+  preferences: { key: string; value: StoredPreference }
 }
 
 export const DB_NAME = 'alerta-sin-red'
-const DB_VERSION = 2
+const DB_VERSION = 3
 
 export type AppDatabase = IDBPDatabase<AlertaSinRedDB>
 
@@ -59,6 +66,9 @@ export function getDatabase(): Promise<AppDatabase> {
       }
       if (oldVersion < 2) {
         db.createObjectStore('subscriptions', { keyPath: 'id' })
+      }
+      if (oldVersion < 3) {
+        db.createObjectStore('preferences', { keyPath: 'key' })
       }
     },
   })

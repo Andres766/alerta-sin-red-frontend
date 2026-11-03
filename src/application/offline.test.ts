@@ -5,6 +5,7 @@ import type { RiskSnapshot, SubscriptionRequest } from '../domain/types'
 import { ApiClient, ApiError } from '../infrastructure/http/ApiClient'
 import { getDatabase } from '../infrastructure/storage/database'
 import { OutboxRepository } from '../infrastructure/storage/OutboxRepository'
+import { PreferencesRepository } from '../infrastructure/storage/PreferencesRepository'
 import { SnapshotRepository } from '../infrastructure/storage/SnapshotRepository'
 import { SubscriptionRepository } from '../infrastructure/storage/SubscriptionRepository'
 import { OutboxProcessor } from './OutboxProcessor'
@@ -65,6 +66,7 @@ beforeEach(async () => {
   await db.clear('snapshot')
   await db.clear('outbox')
   await db.clear('subscriptions')
+  await db.clear('preferences')
 })
 
 describe('RiskService (network-first con respaldo en IndexedDB)', () => {
@@ -263,5 +265,16 @@ describe('Enlace directo a una zona', () => {
     expect(await service.zone(zoneId)).toBeNull()
     expect(await service.zone('../../admin/users')).toBeNull()
     expect(net.calls).toHaveLength(1)
+  })
+})
+
+describe('Preferencias del dispositivo', () => {
+  it('guarda, lee y borra la zona favorita', async () => {
+    const prefs = new PreferencesRepository(getDatabase)
+    expect(await prefs.favoriteZoneId()).toBeNull()
+    await prefs.setFavoriteZoneId('z-pasto')
+    expect(await prefs.favoriteZoneId()).toBe('z-pasto')
+    await prefs.setFavoriteZoneId(null)
+    expect(await prefs.favoriteZoneId()).toBeNull()
   })
 })

@@ -10,6 +10,7 @@ import { BackgroundSyncScheduler, SubscriptionService } from './application/Subs
 import { ApiClient } from './infrastructure/http/ApiClient'
 import { getDatabase } from './infrastructure/storage/database'
 import { OutboxRepository } from './infrastructure/storage/OutboxRepository'
+import { PreferencesRepository } from './infrastructure/storage/PreferencesRepository'
 import { SnapshotRepository } from './infrastructure/storage/SnapshotRepository'
 import { SubscriptionRepository } from './infrastructure/storage/SubscriptionRepository'
 
@@ -19,6 +20,7 @@ const api = new ApiClient(API_BASE)
 const snapshots = new SnapshotRepository(getDatabase)
 export const outboxRepository = new OutboxRepository(getDatabase)
 const subscriptions = new SubscriptionRepository(getDatabase)
+export const preferences = new PreferencesRepository(getDatabase)
 
 export const riskService = new RiskService(api, snapshots)
 export const subscriptionService = new SubscriptionService(

@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { IconMapPin, IconRefresh } from '../components/icons'
+import { IconMapPin, IconRefresh, IconStar } from '../components/icons'
 import { RiskSummary } from '../components/RiskSummary'
 import { ZoneCard } from '../components/ZoneCard'
 import { ZoneMap } from '../components/ZoneMap'
 import type { LatLon } from '../domain/geo'
 import { timeAgo } from '../domain/time'
 import type { DataSource, NearbyZone, ZoneRisk } from '../domain/types'
+import { useFavoriteZone } from '../hooks/useFavoriteZone'
 import { useSnapshot } from '../hooks/useSnapshot'
 import { riskService } from '../services'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
@@ -54,11 +55,21 @@ export function HomePage() {
     )
   }
 
+  const { favoriteId } = useFavoriteZone()
   const items = data?.snapshot.items ?? []
+  const favorite = items.find((i) => i.zone.id === favoriteId)
   const byId = new Map<string, ZoneRisk>(items.map((i) => [i.zone.id, i]))
 
   return (
     <div className="space-y-6">
+      {favorite && (
+        <section aria-labelledby="mi-zona" className="space-y-2">
+          <h2 id="mi-zona" className="flex items-center gap-1.5 text-sm font-semibold text-amber-800">
+            <IconStar filled className="size-4" /> Mi zona
+          </h2>
+          <ZoneCard item={favorite} />
+        </section>
+      )}
       <div className="grid items-start gap-4 md:grid-cols-2">
         {data ? (
           <RiskSummary items={items} />

@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { Layout } from './components/Layout'
 import { AuthProvider } from './hooks/useAuth'
+import { FavoriteZoneProvider } from './hooks/useFavoriteZone'
 import { SnapshotProvider } from './hooks/useSnapshot'
 import { AdminPage } from './pages/AdminPage'
 import { HomePage } from './pages/HomePage'
@@ -13,18 +14,20 @@ export default function App() {
   return (
     <BrowserRouter>
       <SnapshotProvider>
-        <AuthProvider>
-          <Routes>
-            <Route element={<Layout />}>
-              <Route index element={<HomePage />} />
-              <Route path="zona/:zoneId" element={<ZonePage />} />
-              <Route path="suscribirme" element={<SubscribePage />} />
-              <Route path="operador" element={<AdminPage />} />
-              <Route path="como-funciona" element={<HowItWorksPage />} />
-              <Route path="*" element={<NotFoundPage />} />
-            </Route>
-          </Routes>
-        </AuthProvider>
+        <FavoriteZoneProvider>
+          <AuthProvider>
+            <Routes>
+              <Route element={<Layout />}>
+                <Route index element={<HomePage />} />
+                <Route path="zona/:zoneId" element={<ZonePage />} />
+                <Route path="suscribirme" element={<SubscribePage />} />
+                <Route path="operador" element={<AdminPage />} />
+                <Route path="como-funciona" element={<HowItWorksPage />} />
+                <Route path="*" element={<NotFoundPage />} />
+              </Route>
+            </Routes>
+          </AuthProvider>
+        </FavoriteZoneProvider>
       </SnapshotProvider>
     </BrowserRouter>
   )
