@@ -1,6 +1,7 @@
 import type { ComponentType, SVGProps } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { ConnectionBanner } from './ConnectionBanner'
+import { ErrorBoundary } from './ErrorBoundary'
 import { IconBell, IconHome, IconShield } from './icons'
 import { UpdatePrompt } from './UpdatePrompt'
 import { RouteAnnouncer } from './RouteAnnouncer'
@@ -18,6 +19,7 @@ const links: NavItem[] = [
 ]
 
 export function Layout() {
+  const { pathname } = useLocation()
   return (
     <div className="flex min-h-dvh flex-col">
       <a
@@ -57,7 +59,10 @@ export function Layout() {
 
       <RouteAnnouncer mainId="contenido" />
       <main id="contenido" tabIndex={-1} className="mx-auto w-full max-w-3xl flex-1 px-4 pb-28 pt-5 outline-none sm:pb-10">
-        <Outlet />
+        {/* Un error en una pantalla no tumba la navegación; la key por ruta lo reinicia. */}
+        <ErrorBoundary key={pathname}>
+          <Outlet />
+        </ErrorBoundary>
       </main>
 
       <footer className="hidden border-t border-slate-200 py-4 text-center text-xs text-slate-500 sm:block">
