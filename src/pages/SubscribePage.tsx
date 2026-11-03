@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { IconBell, IconPhone, IconWifiOff } from '../components/icons'
+import { formatColombianMobile, isValidColombianMobile } from '../domain/phone'
 import { formatDateTime } from '../domain/time'
 import { useOutbox } from '../hooks/useOutbox'
 import { useSnapshot } from '../hooks/useSnapshot'
@@ -11,7 +12,6 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 type Feedback = { kind: 'ok' | 'queued' | 'error'; text: string } | null
 
-const PHONE_PATTERN = /^(\+?57)?\s?3\d{2}\s?\d{3}\s?\d{4}$/
 
 const FEEDBACK_STYLE = {
   ok: 'bg-green-50 text-green-900 border-green-200',
@@ -37,7 +37,7 @@ export function SubscribePage() {
   const submit = async (e: FormEvent) => {
     e.preventDefault()
     // Validación en el cliente = mejor experiencia. La validación que protege es la del servidor.
-    if (!PHONE_PATTERN.test(phone.trim())) {
+    if (!isValidColombianMobile(phone)) {
       setFeedback({ kind: 'error', text: 'Escriba un celular colombiano válido, p. ej. 300 123 4567.' })
       return
     }
@@ -132,7 +132,7 @@ export function SubscribePage() {
               required
               placeholder="300 123 4567"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) => setPhone(formatColombianMobile(e.target.value))}
               className="w-full rounded-xl border border-slate-300 py-3 pl-10 pr-3"
             />
           </span>
