@@ -1,12 +1,14 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { IconMapPin, IconRefresh, IconStar } from '../components/icons'
 import { RiskSummary } from '../components/RiskSummary'
 import { ZoneCard } from '../components/ZoneCard'
+import { ZoneFilters } from '../components/ZoneFilters'
 import { ZoneMap } from '../components/ZoneMap'
 import type { LatLon } from '../domain/geo'
 import { timeAgo } from '../domain/time'
 import type { DataSource, NearbyZone, ZoneRisk } from '../domain/types'
+import { filterZones, type LevelFilter } from '../domain/zoneFilter'
 import { useFavoriteZone } from '../hooks/useFavoriteZone'
 import { useSnapshot } from '../hooks/useSnapshot'
 import { riskService } from '../services'
@@ -56,8 +58,18 @@ export function HomePage() {
   }
 
   const { favoriteId } = useFavoriteZone()
-  const items = data?.snapshot.items ?? []
+  const items = useMemo(() => data?.snapshot.items ?? [], [data])
   const favorite = items.find((i) => i.zone.id === favoriteId)
+  const [query, setQuery] = useState('')
+  const [levels, setLevels] = useState<ReadonlySet<LevelFilter>>(new Set())
+  const visible = useMemo(() => filterZones(items, query, levels), [items, query, levels])
+  const toggleLevel = (level: LevelFilter) =>
+    setLevels((current) => {
+      const next = new Set(current)
+      if (next.has(level)) next.delete(level)
+      else next.add(level)
+      return next
+    })
   const byId = new Map<string, ZoneRisk>(items.map((i) => [i.zone.id, i]))
 
   return (
@@ -137,8 +149,17 @@ export function HomePage() {
         </div>
         {error && !data && <p className="rounded-2xl bg-amber-50 p-4 text-amber-900">{error}</p>}
         {!data && loading && <SkeletonList />}
+        {items.length > 0 && (
+          <ZoneFilters query={query} onQuery={setQuery} levels={levels} onToggleLevel={toggleLevel} />
+        )}
+        {(query || levels.size > 0) && (
+          <p role="status" className="text-sm text-slate-600">
+            Mostrando {visible.length} de {items.length} zonas
+            {visible.length === 0 && ' · ninguna coincide con la búsqueda'}
+          </p>
+        )}
         <div className="grid gap-3">
-          {items.map((item) => <ZoneCard key={item.zone.id} item={item} />)}
+          {visible.map((item) => <ZoneCard key={item.zone.id} item={item} />)}
         </div>
       </section>
 
