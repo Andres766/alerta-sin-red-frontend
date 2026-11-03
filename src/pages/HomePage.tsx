@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { IconMapPin, IconRefresh, IconStar } from '../components/icons'
+import { InstallBanner } from '../components/InstallBanner'
 import { RelativeTime } from '../components/RelativeTime'
 import { RiskSummary } from '../components/RiskSummary'
 import { ZoneCard } from '../components/ZoneCard'
@@ -104,6 +105,8 @@ export function HomePage() {
           <ZoneMap items={items} user={nearby.status === 'done' ? nearby.position : null} />
         )}
       </div>
+
+      <InstallBanner />
 
       <div className="grid grid-cols-2 gap-2">
         <button
