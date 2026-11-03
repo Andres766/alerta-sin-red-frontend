@@ -10,7 +10,10 @@ disponible cuando no hay internet, que es justo cuando más falta hace.
 | App shell (HTML, JS, CSS, íconos) | Cache Storage | *Precache* (Workbox) | Al instalar una versión nueva del Service Worker |
 | Rutas de la SPA (`/zona/:id`…) | Cache Storage | `index.html` precacheado | Igual que el app shell |
 | Estado de riesgo (`/risk/snapshot`) | IndexedDB (`snapshot`) + Cache Storage | *Network-first* con respaldo local | Al abrir la app, al volver la red, con reintentos y cada hora con Periodic Sync |
+| Detalle de una zona visitada (`/zones/{id}`) | Cache Storage | *Network-first* (4 s) | Al abrir un enlace directo |
 | Historial de una zona | Cache Storage | *Stale-while-revalidate* | Cada vez que se consulta |
+| Ficha del modelo de IA (`/model`) | Cache Storage | *Stale-while-revalidate* | Al abrir "Cómo funciona" |
+| Preferencias ("mi zona", avisos) | IndexedDB (`preferences`) | Local | Al cambiarlas |
 | Suscripciones y bajas hechas sin red | IndexedDB (`outbox`) | Patrón *Outbox* + Background Sync | En cuanto vuelve la conexión |
 | Suscripciones de este dispositivo | IndexedDB (`subscriptions`) | Local | Al suscribirse o darse de baja |
 | `/auth/*`, `/admin/*` | — | **Nunca** se guardan | — |
@@ -83,8 +86,18 @@ al actualizar la app.
 |---|---|
 | 1 | Almacenes `snapshot` y `outbox` |
 | 2 | Almacén `subscriptions` (códigos de baja) |
+| 3 | Almacén `preferences` ("mi zona", avisos activados, último nivel avisado) |
 
-## 5. Actualizaciones de la app
+## 5. Avisos en el dispositivo
+
+Si la persona fijó "mi zona" y activó los avisos, `RiskNotifier` (compartido por la
+página y el Service Worker) muestra una notificación cuando esa zona sube a riesgo alto
+o muy alto, solo si el nivel subió respecto del último aviso. Con la PWA instalada en
+Chrome, el *Periodic Background Sync* refresca el riesgo cada hora y avisa aunque la
+app esté cerrada. Las preferencias viven en IndexedDB y no en `localStorage` porque el
+Service Worker no puede leer `localStorage`.
+
+## 6. Actualizaciones de la app
 
 El Service Worker usa `registerType: 'prompt'`: cuando hay una versión nueva, la app lo
 avisa ("Hay una nueva versión disponible") en lugar de recargar por sorpresa en medio de
