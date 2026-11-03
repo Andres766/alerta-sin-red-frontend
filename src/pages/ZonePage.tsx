@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { HazardIcon } from '../components/HazardIcon'
 import { IconAlert, IconBell, IconSparkles, IconStar } from '../components/icons'
 import { RiskBadge } from '../components/RiskBadge'
+import { ShareButton } from '../components/ShareButton'
 import { FEATURE_LABEL, HAZARD_LABEL, LEVEL_ORDER, RISK_LEVELS } from '../domain/riskLevel'
 import { formatDateTime, timeAgo } from '../domain/time'
 import type { Assessment, ZoneRisk } from '../domain/types'
@@ -203,6 +204,7 @@ export function ZonePage() {
       >
         <IconBell className="size-5" /> Recibir alertas por SMS de esta zona
       </Link>
+      <ShareButton item={item} />
     </article>
   )
 }
