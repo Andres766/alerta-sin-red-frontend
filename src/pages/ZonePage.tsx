@@ -5,28 +5,52 @@ import { IconAlert, IconBell, IconSparkles } from '../components/icons'
 import { RiskBadge } from '../components/RiskBadge'
 import { FEATURE_LABEL, HAZARD_LABEL, LEVEL_ORDER, RISK_LEVELS } from '../domain/riskLevel'
 import { formatDateTime, timeAgo } from '../domain/time'
-import type { Assessment } from '../domain/types'
+import type { Assessment, ZoneRisk } from '../domain/types'
 import { useSnapshot } from '../hooks/useSnapshot'
-import { API_BASE } from '../services'
+import { riskService } from '../services'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 export function ZonePage() {
   const { zoneId } = useParams()
   const { data } = useSnapshot()
-  const item = data?.snapshot.items.find((i) => i.zone.id === zoneId)
-  const [history, setHistory] = useState<Assessment[] | null>(null)
+  const fromSnapshot = data?.snapshot.items.find((i) => i.zone.id === zoneId)
+  // Enlace directo a una zona que este dispositivo aún no tiene guardada.
+  const [fetched, setFetched] = useState<{ id: string; item: ZoneRisk | null; error?: string } | null>(null)
+  const [history, setHistory] = useState<Assessment[]>([])
+  const item = fromSnapshot ?? (fetched && fetched.id === zoneId ? fetched.item : undefined)
   useDocumentTitle(item ? item.zone.name : 'Zona')
 
   useEffect(() => {
-    if (!zoneId || !/^[0-9a-f-]{36}$/i.test(zoneId)) return
+    if (!zoneId || fromSnapshot) return
+    let active = true
+    riskService
+      .zone(zoneId)
+      .then((found) => active && setFetched({ id: zoneId, item: found }))
+      .catch((e: unknown) =>
+        active && setFetched({ id: zoneId, item: null, error: e instanceof Error ? e.message : 'Error' }),
+      )
+    return () => {
+      active = false
+    }
+  }, [zoneId, fromSnapshot])
+
+  useEffect(() => {
+    if (!zoneId) return
+    let active = true
     // Pasa por el Service Worker (stale-while-revalidate): también funciona offline.
-    fetch(`${API_BASE}/zones/${zoneId}/history?limit=12`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then(setHistory)
-      .catch(() => setHistory(null))
+    void riskService.history(zoneId).then((list) => active && setHistory(list))
+    return () => {
+      active = false
+    }
   }, [zoneId])
 
-  if (!item) {
+  if (item === undefined) {
+    if (fetched && fetched.id === zoneId && fetched.error) {
+      return <p className="rounded-2xl bg-amber-50 p-5 text-amber-900">{fetched.error}</p>
+    }
+    return <div className="h-64 animate-pulse rounded-3xl bg-slate-300/60" aria-label="Cargando zona" />
+  }
+  if (item === null) {
     return (
       <p className="rounded-2xl bg-white p-5 text-slate-600">
         Zona no encontrada. <Link to="/" className="font-semibold underline">Volver al inicio</Link>
@@ -137,7 +161,7 @@ export function ZonePage() {
         </section>
       )}
 
-      {history && history.length > 1 && (
+      {history.length > 1 && (
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="font-bold">Evolución reciente</h2>
           <div className="mt-3 flex h-16 items-end gap-1" aria-hidden>

@@ -238,3 +238,30 @@ describe('Utilidades', () => {
     expect(new ApiError(503, 'x', '').isPermanent).toBe(false)
   })
 })
+
+describe('Enlace directo a una zona', () => {
+  const zoneId = '6f1c2f5e-3a4b-4c1d-9e8f-a1b2c3d4e5f6'
+  const remote = { zone: { ...snapshot.items[0]!.zone, id: zoneId, name: 'Remota' }, assessment: null }
+
+  it('usa lo guardado sin ir a la red', async () => {
+    await snapshots.save({ ...snapshot, items: [{ ...remote, zone: { ...remote.zone, name: 'Local' } }] })
+    const found = await new RiskService(api, snapshots).zone(zoneId)
+    expect(found?.zone.name).toBe('Local')
+    expect(net.calls).toHaveLength(0)
+  })
+
+  it('si no la tiene guardada la pide al servidor', async () => {
+    net.responder = () => json(remote)
+    const found = await new RiskService(api, snapshots).zone(zoneId)
+    expect(found?.zone.name).toBe('Remota')
+    expect(net.calls).toEqual([`/api/v1/zones/${zoneId}`])
+  })
+
+  it('devuelve null si la zona no existe y no llama a la red con ids inválidos', async () => {
+    net.responder = () => json({ code: 'zone_not_found', detail: 'Recurso no encontrado' }, 404)
+    const service = new RiskService(api, snapshots)
+    expect(await service.zone(zoneId)).toBeNull()
+    expect(await service.zone('../../admin/users')).toBeNull()
+    expect(net.calls).toHaveLength(1)
+  })
+})

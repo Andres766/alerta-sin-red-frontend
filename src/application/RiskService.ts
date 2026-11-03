@@ -1,5 +1,5 @@
 import { distanceKm, type LatLon } from '../domain/geo'
-import type { DataSource, NearbyZone, RiskSnapshot } from '../domain/types'
+import type { Assessment, DataSource, NearbyZone, RiskSnapshot, ZoneRisk } from '../domain/types'
 import { ApiError, NetworkError, type ApiClient } from '../infrastructure/http/ApiClient'
 import type { SnapshotRepository } from '../infrastructure/storage/SnapshotRepository'
 
@@ -50,6 +50,35 @@ export class RiskService {
     }
   }
 
+  /**
+   * Una zona para su página de detalle. Primero lo guardado (instantáneo y sin red);
+   * si el dispositivo aún no tiene esa zona (p. ej. abrió un enlace compartido), la
+   * pide al servidor. Devuelve null si la zona no existe.
+   */
+  async zone(zoneId: string): Promise<ZoneRisk | null> {
+    if (!RiskService.isZoneId(zoneId)) return null
+    const cached = await this.getCached()
+    const local = cached?.snapshot.items.find((i) => i.zone.id === zoneId)
+    if (local) return local
+    try {
+      return await this.api.get<ZoneRisk>(`/zones/${encodeURIComponent(zoneId)}`)
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) return null
+      if (RiskService.isRecoverable(error)) throw new NoDataAvailableError(RiskService.serverFailed(error))
+      throw error
+    }
+  }
+
+  /** Evaluaciones recientes; si no se pueden obtener, lista vacía (no es información crítica). */
+  async history(zoneId: string, limit = 12): Promise<Assessment[]> {
+    if (!RiskService.isZoneId(zoneId)) return []
+    try {
+      return await this.api.get<Assessment[]>(`/zones/${encodeURIComponent(zoneId)}/history?limit=${limit}`)
+    } catch {
+      return []
+    }
+  }
+
   /** En línea usa PostGIS en el servidor; sin conexión calcula en el dispositivo. */
   async nearby(position: LatLon, radiusKm = 50): Promise<{ zones: NearbyZone[]; source: DataSource }> {
     try {
@@ -76,6 +105,10 @@ export class RiskService {
    * Para LEER datos, cualquier fallo del servidor (caído, despertando, proxy con
    * error) se resuelve con lo guardado: mejor un dato reciente que una pantalla vacía.
    */
+  private static isZoneId(value: string): boolean {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
+  }
+
   /** ¿Falló el servidor (y no la conexión del dispositivo)? */
   private static serverFailed(error: unknown): boolean {
     const deviceOnline = typeof navigator === 'undefined' || navigator.onLine

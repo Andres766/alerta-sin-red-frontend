@@ -62,6 +62,15 @@ registerRoute(
   }),
 )
 registerRoute(
+  ({ url, request }) =>
+    request.method === 'GET' && /\/zones\/[0-9a-f-]{36}$/i.test(url.pathname),
+  new NetworkFirst({
+    cacheName: 'api-zone',
+    networkTimeoutSeconds: 4,
+    plugins: [new ExpirationPlugin({ maxEntries: 30, maxAgeSeconds: 7 * 24 * 3600 })],
+  }),
+)
+registerRoute(
   ({ url, request }) => request.method === 'GET' && url.pathname === `${API_BASE}/model`,
   new StaleWhileRevalidate({ cacheName: 'api-model', plugins: [new ExpirationPlugin({ maxEntries: 1 })] }),
 )
