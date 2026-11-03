@@ -114,3 +114,17 @@ export interface DashboardStats {
   sms_failed_24h: number
   last_evaluation_at: string | null
 }
+
+export interface ModelCard {
+  version: string
+  algorithm: string
+  trained_at: string
+  data_source: string
+  n_samples: number
+  feature_order: string[]
+  feature_importances: Record<string, number>
+  metrics: Record<string, number>
+  confusion_matrix: number[][]
+  labels: RiskLevel[]
+  limitations: string[]
+}

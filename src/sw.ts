@@ -62,6 +62,10 @@ registerRoute(
   }),
 )
 registerRoute(
+  ({ url, request }) => request.method === 'GET' && url.pathname === `${API_BASE}/model`,
+  new StaleWhileRevalidate({ cacheName: 'api-model', plugins: [new ExpirationPlugin({ maxEntries: 1 })] }),
+)
+registerRoute(
   ({ url, request }) => request.method === 'GET' && /\/zones\/[^/]+\/history$/.test(url.pathname),
   new StaleWhileRevalidate({
     cacheName: 'api-history',

@@ -66,7 +66,9 @@ export function Layout() {
       </main>
 
       <footer className="hidden border-t border-slate-200 py-4 text-center text-xs text-slate-500 sm:block">
-        En emergencia llame al <strong>123</strong> · Datos: Open-Meteo, SGC · Proyecto académico UCC Pasto
+        En emergencia llame al <strong>123</strong> ·{' '}
+        <NavLink to="/como-funciona" className="underline hover:text-slate-700">Cómo funciona</NavLink> · Datos:
+        Open-Meteo, SGC · Proyecto académico UCC Pasto
       </footer>
 
       {/* Móvil: barra inferior, al alcance del pulgar */}

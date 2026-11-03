@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { IconMapPin, IconRefresh } from '../components/icons'
 import { RiskSummary } from '../components/RiskSummary'
 import { ZoneCard } from '../components/ZoneCard'
@@ -130,6 +131,11 @@ export function HomePage() {
         </div>
       </section>
 
+      <p className="text-center text-sm text-slate-600">
+        <Link to="/como-funciona" className="font-semibold underline">
+          ¿Cómo se calcula el riesgo?
+        </Link>
+      </p>
       <p className="text-center text-xs text-slate-500 sm:hidden">
         En emergencia llame al <strong>123</strong>
       </p>

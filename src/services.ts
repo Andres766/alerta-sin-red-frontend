@@ -3,6 +3,7 @@
  * concretas. Los componentes reciben servicios ya armados.
  */
 import { AdminService } from './application/AdminService'
+import { ModelInfoService } from './application/ModelInfoService'
 import { OutboxProcessor } from './application/OutboxProcessor'
 import { RiskService } from './application/RiskService'
 import { BackgroundSyncScheduler, SubscriptionService } from './application/SubscriptionService'
@@ -28,3 +29,4 @@ export const subscriptionService = new SubscriptionService(
 )
 export const outboxProcessor = new OutboxProcessor(api, outboxRepository, subscriptions)
 export const adminService = new AdminService(api)
+export const modelInfoService = new ModelInfoService(api)

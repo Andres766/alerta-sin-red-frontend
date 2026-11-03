@@ -4,6 +4,7 @@ import { AuthProvider } from './hooks/useAuth'
 import { SnapshotProvider } from './hooks/useSnapshot'
 import { AdminPage } from './pages/AdminPage'
 import { HomePage } from './pages/HomePage'
+import { HowItWorksPage } from './pages/HowItWorksPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { SubscribePage } from './pages/SubscribePage'
 import { ZonePage } from './pages/ZonePage'
@@ -19,6 +20,7 @@ export default function App() {
               <Route path="zona/:zoneId" element={<ZonePage />} />
               <Route path="suscribirme" element={<SubscribePage />} />
               <Route path="operador" element={<AdminPage />} />
+              <Route path="como-funciona" element={<HowItWorksPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Route>
           </Routes>
