@@ -52,3 +52,14 @@ describe('cambio de contraseña', () => {
     })
   })
 })
+
+describe('gestión de zonas', () => {
+  it('crea con POST y actualiza con PATCH solo los campos cambiados', async () => {
+    const { calls, api } = recordingApi()
+    const service = new AdminService(api)
+    await service.updateZone('tok', 'z-1', { susceptibility: 5 })
+    expect(calls[0]).toMatchObject({
+      url: '/api/v1/admin/zones/z-1', method: 'PATCH', auth: 'Bearer tok', body: { susceptibility: 5 },
+    })
+  })
+})

@@ -29,7 +29,7 @@ export class ApiError extends Error {
 }
 
 interface RequestOptions {
-  method?: 'GET' | 'POST'
+  method?: 'GET' | 'POST' | 'PATCH'
   body?: unknown
   token?: string | null
   timeoutMs?: number
@@ -48,6 +48,10 @@ export class ApiClient {
 
   post<T>(path: string, body?: unknown, token?: string | null): Promise<T> {
     return this.request<T>(path, { method: 'POST', body, token })
+  }
+
+  patch<T>(path: string, body: unknown, token?: string | null): Promise<T> {
+    return this.request<T>(path, { method: 'PATCH', body, token })
   }
 
   private async request<T>(path: string, options: RequestOptions): Promise<T> {

@@ -3,6 +3,9 @@ import type {
   DashboardStats,
   EvaluationResult,
   NewUserAccount,
+  NewZone,
+  Zone,
+  ZoneChanges,
   TokenResponse,
   UserAccount,
 } from '../domain/types'
@@ -47,6 +50,14 @@ export class AdminService {
 
   createUser(token: string, account: NewUserAccount): Promise<UserAccount> {
     return this.api.post<UserAccount>('/admin/users', account, token)
+  }
+
+  createZone(token: string, zone: NewZone): Promise<Zone> {
+    return this.api.post<Zone>('/admin/zones', zone, token)
+  }
+
+  updateZone(token: string, zoneId: string, changes: ZoneChanges): Promise<Zone> {
+    return this.api.patch<Zone>(`/admin/zones/${encodeURIComponent(zoneId)}`, changes, token)
   }
 
   setActive(token: string, userId: string, active: boolean): Promise<UserAccount> {

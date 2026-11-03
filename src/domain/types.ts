@@ -128,3 +128,11 @@ export interface ModelCard {
   labels: RiskLevel[]
   limitations: string[]
 }
+
+export type NewZone = Omit<Zone, 'id'>
+
+export interface ZoneChanges {
+  hazard_type?: HazardType
+  susceptibility?: number
+  slope_deg?: number
+}
