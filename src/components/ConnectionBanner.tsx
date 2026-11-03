@@ -1,4 +1,4 @@
-import { timeAgo } from '../domain/time'
+import { RelativeTime } from './RelativeTime'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
 import { useSnapshot } from '../hooks/useSnapshot'
 
@@ -16,9 +16,13 @@ export function ConnectionBanner() {
     >
       <span className="size-2 shrink-0 rounded-full bg-amber-400" aria-hidden />
       {online ? 'El servidor no responde.' : 'Sin conexión.'}{' '}
-      {data
-        ? `Mostrando los últimos datos guardados (actualizados ${timeAgo(data.savedAt)}).`
-        : 'Aún no hay datos guardados en este dispositivo.'}
+      {data ? (
+        <span>
+          Mostrando los últimos datos guardados (actualizados <RelativeTime iso={data.savedAt} />).
+        </span>
+      ) : (
+        'Aún no hay datos guardados en este dispositivo.'
+      )}
     </div>
   )
 }

@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { IconRefresh, IconShield, IconSparkles, IconUsers } from '../components/icons'
+import { RelativeTime } from '../components/RelativeTime'
 import { RiskBadge } from '../components/RiskBadge'
 import { LEVEL_ORDER, RISK_LEVELS } from '../domain/riskLevel'
-import { formatDateTime, timeAgo } from '../domain/time'
+import { formatDateTime } from '../domain/time'
 import type { AlertRecord, DashboardStats, EvaluationResult, Role, UserAccount } from '../domain/types'
 import { useAuth } from '../hooks/useAuth'
 import { useSnapshot } from '../hooks/useSnapshot'
@@ -85,7 +86,7 @@ function LoginForm() {
   )
 }
 
-function StatTile({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
+function StatTile({ label, value, hint }: { label: string; value: ReactNode; hint?: string }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <p className="text-sm text-slate-500">{label}</p>
@@ -288,7 +289,7 @@ function Dashboard({ token, me }: { token: string; me: UserAccount }) {
             <StatTile label="SMS enviados (24 h)" value={stats.sms_sent_24h} hint={stats.sms_failed_24h ? `${stats.sms_failed_24h} fallidos` : 'sin fallos'} />
             <StatTile
               label="Última evaluación"
-              value={stats.last_evaluation_at ? timeAgo(stats.last_evaluation_at).replace(/^hace /, '') : '—'}
+              value={stats.last_evaluation_at ? <RelativeTime iso={stats.last_evaluation_at} withoutPrefix /> : '—'}
               hint={stats.last_evaluation_at ? formatDateTime(stats.last_evaluation_at) : 'nunca'}
             />
           </div>

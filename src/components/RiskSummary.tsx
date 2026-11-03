@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom'
 import { countByLevel, LEVEL_ORDER, mostSevere, RISK_LEVELS } from '../domain/riskLevel'
-import { timeAgo } from '../domain/time'
 import type { ZoneRisk } from '../domain/types'
 import { IconAlert, IconChevronRight, IconShield } from './icons'
+import { RelativeTime } from './RelativeTime'
 
 /** Lo primero que ve la persona: ¿hay alguna alerta activa en la región? */
 export function RiskSummary({ items }: { items: ZoneRisk[] }) {
@@ -60,7 +60,7 @@ export function RiskSummary({ items }: { items: ZoneRisk[] }) {
         ))}
       </dl>
       <p className="mt-3 text-xs text-white/75">
-        Evaluado {timeAgo(worst.assessment.assessed_at)} con el modelo de IA
+        Evaluado <RelativeTime iso={worst.assessment.assessed_at} /> con el modelo de IA
         {counts.SIN_EVALUAR > 0 && ` · ${counts.SIN_EVALUAR} zona(s) sin evaluar`}
       </p>
     </section>

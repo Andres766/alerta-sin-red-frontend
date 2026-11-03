@@ -1,15 +1,17 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { IconMapPin, IconRefresh, IconStar } from '../components/icons'
+import { RelativeTime } from '../components/RelativeTime'
 import { RiskSummary } from '../components/RiskSummary'
 import { ZoneCard } from '../components/ZoneCard'
 import { ZoneFilters } from '../components/ZoneFilters'
 import { ZoneMap } from '../components/ZoneMap'
 import type { LatLon } from '../domain/geo'
-import { timeAgo } from '../domain/time'
+import { isStale, latestIso, STALE_AFTER_HOURS } from '../domain/time'
 import type { DataSource, NearbyZone, ZoneRisk } from '../domain/types'
 import { filterZones, type LevelFilter } from '../domain/zoneFilter'
 import { useFavoriteZone } from '../hooks/useFavoriteZone'
+import { useNow } from '../hooks/useNow'
 import { useSnapshot } from '../hooks/useSnapshot'
 import { riskService } from '../services'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
@@ -60,6 +62,9 @@ export function HomePage() {
   const { favoriteId } = useFavoriteZone()
   const items = useMemo(() => data?.snapshot.items ?? [], [data])
   const favorite = items.find((i) => i.zone.id === favoriteId)
+  const now = useNow()
+  const lastEvaluation = latestIso(items.map((i) => i.assessment?.assessed_at))
+  const stale = lastEvaluation !== null && isStale(lastEvaluation, now)
   const [query, setQuery] = useState('')
   const [levels, setLevels] = useState<ReadonlySet<LevelFilter>>(new Set())
   const visible = useMemo(() => filterZones(items, query, levels), [items, query, levels])
@@ -81,6 +86,13 @@ export function HomePage() {
           </h2>
           <ZoneCard item={favorite} />
         </section>
+      )}
+      {stale && lastEvaluation && (
+        <p role="alert" className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+          <strong>Datos desactualizados:</strong> la última evaluación es de{' '}
+          <RelativeTime iso={lastEvaluation} /> (más de {STALE_AFTER_HOURS} horas). El riesgo actual
+          puede ser distinto: si llueve fuerte, siga las indicaciones de las autoridades.
+        </p>
       )}
       <div className="grid items-start gap-4 md:grid-cols-2">
         {data ? (
@@ -143,7 +155,7 @@ export function HomePage() {
           <h2 id="todas" className="text-lg font-bold">Zonas monitoreadas</h2>
           {data && (
             <span className="text-xs text-slate-500">
-              {data.source === 'network' ? 'Actualizado' : 'Guardado'} {timeAgo(data.savedAt)}
+              {data.source === 'network' ? 'Actualizado' : 'Guardado'} <RelativeTime iso={data.savedAt} />
             </span>
           )}
         </div>

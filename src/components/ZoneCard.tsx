@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom'
 import { HAZARD_LABEL, RISK_LEVELS } from '../domain/riskLevel'
-import { timeAgo } from '../domain/time'
 import type { ZoneRisk } from '../domain/types'
 import { HazardIcon } from './HazardIcon'
 import { IconChevronRight } from './icons'
+import { RelativeTime } from './RelativeTime'
 import { RiskBadge } from './RiskBadge'
 
 export function ZoneCard({ item, distanceKm }: { item: ZoneRisk; distanceKm?: number }) {
@@ -31,7 +31,7 @@ export function ZoneCard({ item, distanceKm }: { item: ZoneRisk; distanceKm?: nu
         </span>
         {assessment && (
           <span className="mt-1 block text-xs text-slate-500">
-            Confianza {Math.round(assessment.probability * 100)} % · {timeAgo(assessment.assessed_at)}
+            Confianza {Math.round(assessment.probability * 100)} % · <RelativeTime iso={assessment.assessed_at} />
           </span>
         )}
       </span>

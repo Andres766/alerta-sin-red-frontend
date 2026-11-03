@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { HazardIcon } from '../components/HazardIcon'
 import { IconAlert, IconBell, IconSparkles, IconStar } from '../components/icons'
+import { RelativeTime } from '../components/RelativeTime'
 import { RiskBadge } from '../components/RiskBadge'
 import { ShareButton } from '../components/ShareButton'
 import { FEATURE_LABEL, HAZARD_LABEL, LEVEL_ORDER, RISK_LEVELS } from '../domain/riskLevel'
-import { formatDateTime, timeAgo } from '../domain/time'
+import { formatDateTime } from '../domain/time'
 import type { Assessment, ZoneRisk } from '../domain/types'
 import { useFavoriteZone } from '../hooks/useFavoriteZone'
 import { useSnapshot } from '../hooks/useSnapshot'
@@ -100,7 +101,7 @@ export function ZonePage() {
               </div>
             </div>
             <p className="mt-3 text-xs text-white/75">
-              Evaluado {timeAgo(assessment.assessed_at)} ({formatDateTime(assessment.assessed_at)}) ·
+              Evaluado <RelativeTime iso={assessment.assessed_at} /> ({formatDateTime(assessment.assessed_at)}) ·
               modelo {assessment.model_version}
             </p>
           </>
