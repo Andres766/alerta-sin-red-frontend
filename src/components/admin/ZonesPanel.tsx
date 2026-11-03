@@ -21,8 +21,11 @@ function ZoneRow({ zone, token, onSaved }: { zone: Zone; token: string; onSaved:
 
   const save = async () => {
     try {
+      // Solo los campos que cambiaron: la bitácora del servidor refleja el cambio real.
       await adminService.updateZone(token, zone.id, {
-        hazard_type: hazard, susceptibility, slope_deg: slope,
+        ...(hazard !== zone.hazard_type && { hazard_type: hazard }),
+        ...(susceptibility !== zone.susceptibility && { susceptibility }),
+        ...(slope !== zone.slope_deg && { slope_deg: slope }),
       })
       onSaved(`Zona actualizada: ${zone.name}`)
     } catch (err) {

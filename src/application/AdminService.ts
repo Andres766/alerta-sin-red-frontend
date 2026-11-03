@@ -1,9 +1,11 @@
 import type {
   AlertRecord,
+  AuditEntry,
   DashboardStats,
   EvaluationResult,
   NewUserAccount,
   NewZone,
+  SmsTestResult,
   Zone,
   ZoneChanges,
   TokenResponse,
@@ -50,6 +52,18 @@ export class AdminService {
 
   createUser(token: string, account: NewUserAccount): Promise<UserAccount> {
     return this.api.post<UserAccount>('/admin/users', account, token)
+  }
+
+  auditLog(token: string, limit = 100): Promise<AuditEntry[]> {
+    return this.api.get<AuditEntry[]>(`/admin/audit?limit=${limit}`, token)
+  }
+
+  sendTestSms(token: string, phone: string): Promise<SmsTestResult> {
+    return this.api.post<SmsTestResult>('/admin/sms/test', { phone }, token)
+  }
+
+  assessmentsCsv(token: string, days: number): Promise<Blob> {
+    return this.api.getBlob(`/admin/assessments.csv?days=${days}`, token)
   }
 
   createZone(token: string, zone: NewZone): Promise<Zone> {

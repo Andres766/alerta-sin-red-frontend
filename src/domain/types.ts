@@ -67,6 +67,8 @@ export interface CancelRequest {
 export interface AlertRecord {
   id: string
   zone_id: string
+  /** ALERT: el riesgo subió; ALL_CLEAR: aviso de fin de alerta. */
+  kind: 'ALERT' | 'ALL_CLEAR'
   level: RiskLevel
   channel: string
   status: 'SENT' | 'FAILED'
@@ -135,4 +137,21 @@ export interface ZoneChanges {
   hazard_type?: HazardType
   susceptibility?: number
   slope_deg?: number
+}
+
+export interface AuditEntry {
+  id: string
+  actor: string
+  action: string
+  target: string | null
+  details: string | null
+  created_at: string
+}
+
+export interface SmsTestResult {
+  success: boolean
+  channel: string
+  phone_masked: string
+  provider_message_id: string | null
+  error: string | null
 }

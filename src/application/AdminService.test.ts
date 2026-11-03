@@ -63,3 +63,16 @@ describe('gestión de zonas', () => {
     })
   })
 })
+
+describe('herramientas de operación', () => {
+  it('descarga el CSV como archivo con el token', async () => {
+    const calls: string[] = []
+    const api = new ApiClient('/api/v1', async (input, init) => {
+      calls.push(`${String(input)} ${new Headers(init?.headers).get('Authorization')}`)
+      return new Response('fecha_utc,zona\n', { status: 200, headers: { 'Content-Type': 'text/csv' } })
+    })
+    const blob = await new AdminService(api).assessmentsCsv('tok', 30)
+    expect(await blob.text()).toBe('fecha_utc,zona\n')
+    expect(calls).toEqual(['/api/v1/admin/assessments.csv?days=30 Bearer tok'])
+  })
+})

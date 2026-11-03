@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { IconRefresh, IconShield, IconSparkles, IconUsers } from '../components/icons'
 import { ChangePasswordForm } from '../components/admin/ChangePasswordForm'
+import { AuditLogPanel, ExportCsvButton, SmsTestPanel } from '../components/admin/OperationsTools'
 import { ZonesPanel } from '../components/admin/ZonesPanel'
 import { RelativeTime } from '../components/RelativeTime'
 import { RiskBadge } from '../components/RiskBadge'
@@ -201,7 +202,7 @@ function UsersPanel({ token, me }: { token: string; me: UserAccount }) {
         ))}
       </ul>
 
-      <form onSubmit={create} className="mt-4 grid gap-2 rounded-xl bg-slate-50 p-3 sm:grid-cols-[1fr_1fr_auto_auto]">
+      <form onSubmit={create} className="mt-4 grid gap-2 rounded-xl bg-slate-50 p-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto_auto]">
         <input
           type="email" required placeholder="correo@entidad.gov.co" aria-label="Correo de la nueva cuenta"
           value={email} onChange={(e) => setEmail(e.target.value)}
@@ -327,7 +328,10 @@ function Dashboard({ token, me }: { token: string; me: UserAccount }) {
       </section>
 
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="font-bold">Últimos SMS</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-bold">Últimos SMS</h2>
+          <ExportCsvButton token={token} />
+        </div>
         {alerts.length === 0 ? (
           <p className="mt-2 text-sm text-slate-600">Todavía no se han enviado alertas.</p>
         ) : (
@@ -341,7 +345,13 @@ function Dashboard({ token, me }: { token: string; me: UserAccount }) {
                     {a.status === 'SENT' ? 'enviado' : `falló (${a.error})`}
                   </span>
                 </span>
-                <RiskBadge level={a.level} />
+                {a.kind === 'ALL_CLEAR' ? (
+                  <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
+                    Fin de alerta
+                  </span>
+                ) : (
+                  <RiskBadge level={a.level} />
+                )}
               </li>
             ))}
           </ul>
@@ -350,6 +360,8 @@ function Dashboard({ token, me }: { token: string; me: UserAccount }) {
 
       {me.role === 'ADMIN' && <UsersPanel token={token} me={me} />}
       {me.role === 'ADMIN' && <ZonesPanel token={token} />}
+      {me.role === 'ADMIN' && <SmsTestPanel token={token} />}
+      {me.role === 'ADMIN' && <AuditLogPanel token={token} />}
 
       <ChangePasswordForm token={token} />
     </div>

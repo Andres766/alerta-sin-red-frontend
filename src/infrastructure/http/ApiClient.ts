@@ -33,6 +33,7 @@ interface RequestOptions {
   body?: unknown
   token?: string | null
   timeoutMs?: number
+  asBlob?: boolean
 }
 
 export class ApiClient {
@@ -44,6 +45,11 @@ export class ApiClient {
 
   get<T>(path: string, token?: string | null): Promise<T> {
     return this.request<T>(path, { token })
+  }
+
+  /** Descarga un archivo (p. ej. un CSV) en vez de JSON. */
+  getBlob(path: string, token?: string | null): Promise<Blob> {
+    return this.request<Blob>(path, { token, asBlob: true })
   }
 
   post<T>(path: string, body?: unknown, token?: string | null): Promise<T> {
@@ -90,6 +96,7 @@ export class ApiClient {
       throw new ApiError(response.status, payload.code ?? 'http_error', detail)
     }
     if (response.status === 204) return undefined as T // sin contenido (p. ej. baja)
+    if (options.asBlob) return (await response.blob()) as T
     return (await response.json()) as T
   }
 }
