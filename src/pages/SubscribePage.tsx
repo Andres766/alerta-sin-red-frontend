@@ -7,6 +7,7 @@ import { useSnapshot } from '../hooks/useSnapshot'
 import { ApiError } from '../infrastructure/http/ApiClient'
 import type { StoredSubscription } from '../infrastructure/storage/database'
 import { subscriptionService } from '../services'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 type Feedback = { kind: 'ok' | 'queued' | 'error'; text: string } | null
 
@@ -28,6 +29,7 @@ export function SubscribePage() {
   const [sending, setSending] = useState(false)
   const [feedback, setFeedback] = useState<Feedback>(null)
   const [cancelling, setCancelling] = useState<string | null>(null)
+  useDocumentTitle('Alertas por SMS')
 
   const zones = data?.snapshot.items.map((i) => i.zone) ?? []
   const zoneName = (id: string) => zones.find((z) => z.id === id)?.name ?? 'Zona'

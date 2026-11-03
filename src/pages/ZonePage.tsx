@@ -8,12 +8,14 @@ import { formatDateTime, timeAgo } from '../domain/time'
 import type { Assessment } from '../domain/types'
 import { useSnapshot } from '../hooks/useSnapshot'
 import { API_BASE } from '../services'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 export function ZonePage() {
   const { zoneId } = useParams()
   const { data } = useSnapshot()
   const item = data?.snapshot.items.find((i) => i.zone.id === zoneId)
   const [history, setHistory] = useState<Assessment[] | null>(null)
+  useDocumentTitle(item ? item.zone.name : 'Zona')
 
   useEffect(() => {
     if (!zoneId || !/^[0-9a-f-]{36}$/i.test(zoneId)) return

@@ -8,6 +8,7 @@ import { timeAgo } from '../domain/time'
 import type { DataSource, NearbyZone, ZoneRisk } from '../domain/types'
 import { useSnapshot } from '../hooks/useSnapshot'
 import { riskService } from '../services'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 type NearbyState =
   | { status: 'idle' }
@@ -28,6 +29,7 @@ function SkeletonList() {
 export function HomePage() {
   const { data, loading, error, refresh } = useSnapshot()
   const [nearby, setNearby] = useState<NearbyState>({ status: 'idle' })
+  useDocumentTitle('Riesgo climático en tu zona')
 
   const locate = () => {
     if (!('geolocation' in navigator)) {

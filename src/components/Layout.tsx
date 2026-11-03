@@ -3,6 +3,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 import { ConnectionBanner } from './ConnectionBanner'
 import { IconBell, IconHome, IconShield } from './icons'
 import { UpdatePrompt } from './UpdatePrompt'
+import { RouteAnnouncer } from './RouteAnnouncer'
 
 interface NavItem {
   to: string
@@ -54,7 +55,8 @@ export function Layout() {
         <ConnectionBanner />
       </header>
 
-      <main id="contenido" className="mx-auto w-full max-w-3xl flex-1 px-4 pb-28 pt-5 sm:pb-10">
+      <RouteAnnouncer mainId="contenido" />
+      <main id="contenido" tabIndex={-1} className="mx-auto w-full max-w-3xl flex-1 px-4 pb-28 pt-5 outline-none sm:pb-10">
         <Outlet />
       </main>
 

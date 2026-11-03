@@ -8,6 +8,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useSnapshot } from '../hooks/useSnapshot'
 import { ApiError } from '../infrastructure/http/ApiClient'
 import { adminService } from '../services'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 const ROLE_LABEL: Record<Role, string> = { ADMIN: 'Administrador', OPERATOR: 'Operador' }
 
@@ -351,5 +352,6 @@ function Dashboard({ token, me }: { token: string; me: UserAccount }) {
 
 export function AdminPage() {
   const { session } = useAuth()
+  useDocumentTitle(session ? 'Panel del operador' : 'Acceso de operadores')
   return session ? <Dashboard token={session.token} me={session.user} /> : <LoginForm />
 }
