@@ -28,7 +28,9 @@ export function SnapshotProvider({ children }: { children: ReactNode }) {
   const attempt = useRef(0)
   const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const refresh = useCallback(async () => {
+  // Función con nombre: el reintento programado se llama a sí misma sin leer
+  // la constante `refresh` mientras todavía se está inicializando.
+  const refresh = useCallback(async function refreshSnapshot(): Promise<void> {
     if (retryTimer.current) clearTimeout(retryTimer.current)
     setLoading(true)
     let fresh = false
@@ -48,7 +50,7 @@ export function SnapshotProvider({ children }: { children: ReactNode }) {
       attempt.current = 0
     } else if (navigator.onLine && attempt.current < RETRY_DELAYS_MS.length) {
       const delay = RETRY_DELAYS_MS[attempt.current++]
-      retryTimer.current = setTimeout(() => void refresh(), delay)
+      retryTimer.current = setTimeout(() => void refreshSnapshot(), delay)
     }
   }, [])
 

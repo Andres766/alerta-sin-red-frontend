@@ -45,6 +45,20 @@ Para apuntar a otra API en desarrollo: `VITE_API_PROXY=http://127.0.0.1:8010 npm
 | `npm run preview` | Sirve el build (útil para probar el modo offline real) |
 | `npm test` | Pruebas con Vitest |
 | `npm run typecheck` | Solo verificación de tipos |
+| `npm run lint` | Análisis estático con Oxlint (TypeScript, hooks de React, accesibilidad) |
+
+## Calidad
+
+Se usa **Oxlint** en lugar de ESLint porque `typescript-eslint` aún no es compatible con
+TypeScript 7. La configuración (`.oxlintrc.json`) activa las reglas de corrección, las de
+los hooks de React y las de accesibilidad. Reglas desactivadas a propósito:
+
+| Regla | Motivo |
+|---|---|
+| `react/set-state-in-effect` | Los efectos cargan datos de IndexedDB o de la API: es sincronizar con un sistema externo, el uso legítimo de un efecto |
+| `jsx-a11y/prefer-tag-over-role` | `role="status"` es el patrón WAI-ARIA para avisos que cambian en vivo; `<output>` es para resultados de cálculos |
+| `import/no-unassigned-import` | Importaciones con efecto intencional (hoja de estilos, `fake-indexeddb/auto` en pruebas) |
+| `no-underscore-dangle` | `self.__WB_MANIFEST` es el nombre que exige Workbox |
 
 ## Cómo demostrar el modo offline
 

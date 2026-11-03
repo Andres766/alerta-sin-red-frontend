@@ -68,7 +68,10 @@ export function ZoneMap({ items, user }: { items: ZoneRisk[]; user?: LatLon | nu
 
   return (
     <figure className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-label={`Mapa de zonas. ${summary}`} className="block w-full">
+      {/* Sin role="img": ese rol vuelve "presentacionales" a los hijos y ocultaba los
+          enlaces de cada zona a los lectores de pantalla. */}
+      <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} aria-labelledby="mapa-titulo" className="block w-full">
+        <title id="mapa-titulo">{`Mapa esquemático de zonas. ${summary}`}</title>
         <defs>
           <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
             <path d="M20 0H0V20" fill="none" stroke="#e2e8f0" strokeWidth="0.6" />
@@ -82,16 +85,20 @@ export function ZoneMap({ items, user }: { items: ZoneRisk[]; user?: LatLon | nu
           const urgent = assessment ? RISK_LEVELS[assessment.level].severity >= 2 : false
           const showLabel = !labeled.has(zone.municipality)
           labeled.add(zone.municipality)
-          const go = () => navigate(`/zona/${zone.id}`)
+          const href = `/zona/${zone.id}`
           return (
-            <g
+            // Enlace SVG real: enfocable, se puede abrir en otra pestaña y lo anuncian
+            // los lectores de pantalla. El clic normal navega sin recargar la página.
+            <a
               key={zone.id}
-              role="link"
-              tabIndex={0}
+              href={href}
               aria-label={zone.name}
               className="cursor-pointer focus:outline-none"
-              onClick={go}
-              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && go()}
+              onClick={(e) => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return
+                e.preventDefault()
+                navigate(href)
+              }}
             >
               {urgent && (
                 <circle cx={x} cy={y} r={9} fill={color} opacity={0.35} className="map-pulse" />
@@ -115,7 +122,7 @@ export function ZoneMap({ items, user }: { items: ZoneRisk[]; user?: LatLon | nu
                 </text>
                 )
               })()}
-            </g>
+            </a>
           )
         })}
         {user && (() => {

@@ -1,0 +1,25 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "react", "react-hooks", "jsx-a11y", "import", "vitest"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "rules": {
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "error",
+    "react/react-in-jsx-scope": "off",
+    "no-console": ["error", { "allow": ["warn", "error"] }],
+    "eqeqeq": "error",
+    "jsx-a11y/no-autofocus": "error",
+    "jsx-a11y/anchor-is-valid": "error",
+    "typescript/no-explicit-any": "error",
+    "import/no-cycle": "error",
+
+    "react/set-state-in-effect": "off",
+    "jsx-a11y/prefer-tag-over-role": "off",
+    "import/no-unassigned-import": "off",
+    "no-underscore-dangle": "off"
+  },
+  "ignorePatterns": ["dist", "dev-dist", "node_modules"]
+}
