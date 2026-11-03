@@ -16,6 +16,15 @@ export class AdminService {
     return this.api.post<TokenResponse>('/auth/login', { email, password })
   }
 
+  /** Devuelve un token nuevo: los anteriores dejan de valer al cambiar la clave. */
+  changePassword(token: string, currentPassword: string, newPassword: string): Promise<TokenResponse> {
+    return this.api.post<TokenResponse>(
+      '/auth/change-password',
+      { current_password: currentPassword, new_password: newPassword },
+      token,
+    )
+  }
+
   me(token: string): Promise<UserAccount> {
     return this.api.get<UserAccount>('/auth/me', token)
   }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { IconRefresh, IconShield, IconSparkles, IconUsers } from '../components/icons'
+import { ChangePasswordForm } from '../components/admin/ChangePasswordForm'
 import { RelativeTime } from '../components/RelativeTime'
 import { RiskBadge } from '../components/RiskBadge'
 import { LEVEL_ORDER, RISK_LEVELS } from '../domain/riskLevel'
@@ -347,6 +348,8 @@ function Dashboard({ token, me }: { token: string; me: UserAccount }) {
       </section>
 
       {me.role === 'ADMIN' && <UsersPanel token={token} me={me} />}
+
+      <ChangePasswordForm token={token} />
     </div>
   )
 }

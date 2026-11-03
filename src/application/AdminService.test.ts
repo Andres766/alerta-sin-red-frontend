@@ -41,3 +41,14 @@ describe('AdminService', () => {
     expect(calls[0]?.body).toEqual({ email: 'op@x.co', password: 'clave-de-doce', role: 'OPERATOR' })
   })
 })
+
+describe('cambio de contraseña', () => {
+  it('envía la clave actual y la nueva con el token de la sesión', async () => {
+    const { calls, api } = recordingApi()
+    await new AdminService(api).changePassword('tok', 'actual-123', 'nueva-clave-segura')
+    expect(calls[0]).toMatchObject({
+      url: '/api/v1/auth/change-password', method: 'POST', auth: 'Bearer tok',
+      body: { current_password: 'actual-123', new_password: 'nueva-clave-segura' },
+    })
+  })
+})

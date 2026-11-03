@@ -14,6 +14,8 @@ interface AuthState {
   notice: string | null
   login: (email: string, password: string) => Promise<void>
   logout: (reason?: string) => void
+  /** Reemplaza el token de la sesión actual (p. ej. tras cambiar la contraseña). */
+  replaceToken: (token: string, expiresIn: number) => void
 }
 
 const AuthContext = createContext<AuthState | null>(null)
@@ -35,6 +37,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession({ token: t.access_token, user, expiresAt: Date.now() + t.expires_in * 1000 })
   }, [])
 
+  const replaceToken = useCallback((token: string, expiresIn: number) => {
+    setSession((current) =>
+      current ? { ...current, token, expiresAt: Date.now() + expiresIn * 1000 } : current,
+    )
+  }, [])
+
   const logout = useCallback((reason?: string) => {
     setSession(null)
     setNotice(reason ?? null)
@@ -51,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [session, logout])
 
   return (
-    <AuthContext.Provider value={{ session, notice, login, logout }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ session, notice, login, logout, replaceToken }}>{children}</AuthContext.Provider>
   )
 }
 
