@@ -7,14 +7,40 @@ import type { AppDatabase } from './database'
 export class PreferencesRepository {
   constructor(private readonly db: () => Promise<AppDatabase>) {}
 
-  async favoriteZoneId(): Promise<string | null> {
-    const record = await (await this.db()).get('preferences', 'favoriteZoneId')
+  favoriteZoneId(): Promise<string | null> {
+    return this.get('favoriteZoneId')
+  }
+
+  setFavoriteZoneId(zoneId: string | null): Promise<void> {
+    return this.set('favoriteZoneId', zoneId)
+  }
+
+  async notificationsEnabled(): Promise<boolean> {
+    return (await this.get('notificationsEnabled')) === '1'
+  }
+
+  setNotificationsEnabled(enabled: boolean): Promise<void> {
+    return this.set('notificationsEnabled', enabled ? '1' : null)
+  }
+
+  /** Severidad (0–3) del último aviso mostrado para una zona, o null si no hay aviso vigente. */
+  async lastNotifiedSeverity(zoneId: string): Promise<number | null> {
+    const value = await this.get(`notified:${zoneId}`)
+    return value === null ? null : Number(value)
+  }
+
+  setLastNotifiedSeverity(zoneId: string, severity: number | null): Promise<void> {
+    return this.set(`notified:${zoneId}`, severity === null ? null : String(severity))
+  }
+
+  private async get(key: string): Promise<string | null> {
+    const record = await (await this.db()).get('preferences', key)
     return typeof record?.value === 'string' ? record.value : null
   }
 
-  async setFavoriteZoneId(zoneId: string | null): Promise<void> {
+  private async set(key: string, value: string | null): Promise<void> {
     const db = await this.db()
-    if (zoneId === null) await db.delete('preferences', 'favoriteZoneId')
-    else await db.put('preferences', { key: 'favoriteZoneId', value: zoneId })
+    if (value === null) await db.delete('preferences', key)
+    else await db.put('preferences', { key, value })
   }
 }

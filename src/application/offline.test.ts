@@ -9,6 +9,7 @@ import { PreferencesRepository } from '../infrastructure/storage/PreferencesRepo
 import { SnapshotRepository } from '../infrastructure/storage/SnapshotRepository'
 import { SubscriptionRepository } from '../infrastructure/storage/SubscriptionRepository'
 import { OutboxProcessor } from './OutboxProcessor'
+import { RiskNotifier } from './RiskNotifier'
 import { NoDataAvailableError, RiskService } from './RiskService'
 import { SubscriptionService, type SyncScheduler } from './SubscriptionService'
 
@@ -276,5 +277,42 @@ describe('Preferencias del dispositivo', () => {
     expect(await prefs.favoriteZoneId()).toBe('z-pasto')
     await prefs.setFavoriteZoneId(null)
     expect(await prefs.favoriteZoneId()).toBeNull()
+  })
+})
+
+describe('Avisos en el dispositivo para "mi zona"', () => {
+  const prefs = new PreferencesRepository(getDatabase)
+  const shown: string[] = []
+  const notifier = new RiskNotifier(prefs, { show: async (title) => void shown.push(title) })
+  const withLevel = (level: 'BAJO' | 'MODERADO' | 'ALTO' | 'MUY_ALTO'): RiskSnapshot => ({
+    ...snapshot,
+    items: [{ zone: snapshot.items[0]!.zone, assessment: { level } as never }],
+  })
+
+  beforeEach(async () => {
+    shown.length = 0
+    await prefs.setFavoriteZoneId('z-pasto')
+    await prefs.setNotificationsEnabled(true)
+  })
+
+  it('avisa al subir a alto y no repite el mismo nivel', async () => {
+    expect(await notifier.check(withLevel('MODERADO'))).toBe(false)
+    expect(await notifier.check(withLevel('ALTO'))).toBe(true)
+    expect(await notifier.check(withLevel('ALTO'))).toBe(false)
+    expect(await notifier.check(withLevel('MUY_ALTO'))).toBe(true)
+    expect(shown).toEqual(['Alerta naranja: Pasto', 'Alerta roja: Pasto'])
+  })
+
+  it('si el riesgo baja y vuelve a subir, avisa de nuevo', async () => {
+    await notifier.check(withLevel('ALTO'))
+    await notifier.check(withLevel('BAJO'))
+    expect(await notifier.check(withLevel('ALTO'))).toBe(true)
+    expect(shown).toHaveLength(2)
+  })
+
+  it('no avisa si la persona no los activó', async () => {
+    await prefs.setNotificationsEnabled(false)
+    expect(await notifier.check(withLevel('MUY_ALTO'))).toBe(false)
+    expect(shown).toHaveLength(0)
   })
 })

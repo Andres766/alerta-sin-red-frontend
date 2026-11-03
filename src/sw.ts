@@ -23,10 +23,12 @@ import { NavigationRoute, registerRoute } from 'workbox-routing'
 import { NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies'
 import { broadcast } from './application/broadcast'
 import { OutboxProcessor } from './application/OutboxProcessor'
+import { RiskNotifier } from './application/RiskNotifier'
 import type { RiskSnapshot } from './domain/types'
 import { ApiClient } from './infrastructure/http/ApiClient'
 import { getDatabase } from './infrastructure/storage/database'
 import { OutboxRepository } from './infrastructure/storage/OutboxRepository'
+import { PreferencesRepository } from './infrastructure/storage/PreferencesRepository'
 import { SnapshotRepository } from './infrastructure/storage/SnapshotRepository'
 import { SubscriptionRepository } from './infrastructure/storage/SubscriptionRepository'
 
@@ -39,6 +41,13 @@ interface SyncEvent extends ExtendableEvent {
 const API_BASE = '/api/v1'
 const api = new ApiClient(API_BASE)
 const snapshots = new SnapshotRepository(getDatabase)
+const notifier = new RiskNotifier(new PreferencesRepository(getDatabase), {
+  async show(title, { body, url, tag }) {
+    await self.registration.showNotification(title, {
+      body, tag, data: { url }, icon: '/icons/icon-192.png', badge: '/icons/icon-192.png',
+    })
+  },
+})
 const outbox = new OutboxProcessor(
   api,
   new OutboxRepository(getDatabase),
@@ -104,6 +113,21 @@ self.addEventListener('periodicsync', (event) => {
     api.get<RiskSnapshot>('/risk/snapshot').then(async (snapshot) => {
       await snapshots.save(snapshot)
       broadcast({ type: 'snapshot-updated' })
+      await notifier.check(snapshot) // aviso aunque la app esté cerrada
+    }),
+  )
+})
+
+// Tocar la notificación abre (o enfoca) la app en la zona correspondiente.
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const url = typeof event.notification.data?.url === 'string' ? event.notification.data.url : '/'
+  // Solo rutas internas: la notificación nunca debe abrir otro sitio.
+  const target = url.startsWith('/') && !url.startsWith('//') ? url : '/'
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windows) => {
+      const open = windows[0]
+      return open ? open.navigate(target).then((w) => w?.focus()) : self.clients.openWindow(target)
     }),
   )
 })

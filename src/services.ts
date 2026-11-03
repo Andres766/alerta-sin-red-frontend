@@ -5,6 +5,7 @@
 import { AdminService } from './application/AdminService'
 import { ModelInfoService } from './application/ModelInfoService'
 import { OutboxProcessor } from './application/OutboxProcessor'
+import { RiskNotifier } from './application/RiskNotifier'
 import { RiskService } from './application/RiskService'
 import { BackgroundSyncScheduler, SubscriptionService } from './application/SubscriptionService'
 import { ApiClient } from './infrastructure/http/ApiClient'
@@ -32,3 +33,10 @@ export const subscriptionService = new SubscriptionService(
 export const outboxProcessor = new OutboxProcessor(api, outboxRepository, subscriptions)
 export const adminService = new AdminService(api)
 export const modelInfoService = new ModelInfoService(api)
+export const riskNotifier = new RiskNotifier(preferences, {
+  async show(title, { body, url, tag }) {
+    // En Android, new Notification() no está permitido: se usa el Service Worker.
+    const registration = await navigator.serviceWorker?.ready
+    await registration?.showNotification(title, { body, tag, data: { url }, icon: '/icons/icon-192.png' })
+  },
+})

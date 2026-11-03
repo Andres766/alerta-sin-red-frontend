@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { listen } from '../application/broadcast'
 import type { SnapshotResult } from '../application/RiskService'
-import { riskService } from '../services'
+import { riskNotifier, riskService } from '../services'
 import { useOnlineStatus } from './useOnlineStatus'
 
 interface SnapshotState {
@@ -39,6 +39,7 @@ export function SnapshotProvider({ children }: { children: ReactNode }) {
       setData(result)
       setError(null)
       fresh = result.source === 'network'
+      if (fresh) void riskNotifier.check(result.snapshot).catch(() => undefined)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudieron cargar los datos')
     } finally {

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { IconMapPin, IconRefresh, IconStar } from '../components/icons'
+import { DeviceAlertsToggle } from '../components/DeviceAlertsToggle'
 import { InstallBanner } from '../components/InstallBanner'
 import { RelativeTime } from '../components/RelativeTime'
 import { RiskSummary } from '../components/RiskSummary'
@@ -82,9 +83,12 @@ export function HomePage() {
     <div className="space-y-6">
       {favorite && (
         <section aria-labelledby="mi-zona" className="space-y-2">
-          <h2 id="mi-zona" className="flex items-center gap-1.5 text-sm font-semibold text-amber-800">
-            <IconStar filled className="size-4" /> Mi zona
-          </h2>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 id="mi-zona" className="flex items-center gap-1.5 text-sm font-semibold text-amber-800">
+              <IconStar filled className="size-4" /> Mi zona
+            </h2>
+            <DeviceAlertsToggle />
+          </div>
           <ZoneCard item={favorite} />
         </section>
       )}
