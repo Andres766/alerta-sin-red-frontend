@@ -1,8 +1,8 @@
 import type { ComponentType, SVGProps } from 'react'
 import { useTheme, type ThemeMode } from '../hooks/useTheme'
-import { IconMonitor, IconMoon, IconSun } from './icons'
 import type { MessageKey } from '../i18n/es'
 import { useI18n } from '../i18n/I18nProvider'
+import { IconMonitor, IconMoon, IconSun } from './icons'
 
 const OPTIONS: { mode: ThemeMode; label: MessageKey; icon: ComponentType<SVGProps<SVGSVGElement>> }[] = [
   { mode: 'light', label: 'prefs.theme.light', icon: IconSun },
@@ -10,12 +10,35 @@ const OPTIONS: { mode: ThemeMode; label: MessageKey; icon: ComponentType<SVGProp
   { mode: 'system', label: 'prefs.theme.system', icon: IconMonitor },
 ]
 
-/** Control segmentado: tema claro, oscuro o el del sistema. */
-export function ThemeToggle({ className = '' }: { className?: string }) {
+/**
+ * Tema claro, oscuro o el del sistema.
+ * Normal: control segmentado. `compact` (barra superior del celular): un solo
+ * botón que pasa al siguiente modo y anuncia el actual.
+ */
+export function ThemeToggle({ compact = false }: { compact?: boolean }) {
   const { t } = useI18n()
   const { mode, setMode } = useTheme()
+
+  if (compact) {
+    const index = OPTIONS.findIndex((o) => o.mode === mode)
+    const current = OPTIONS[index]!
+    const next = OPTIONS[(index + 1) % OPTIONS.length]!
+    const label = `${t('prefs.theme')}: ${t(current.label)}`
+    return (
+      <button
+        type="button"
+        onClick={() => setMode(next.mode)}
+        aria-label={label}
+        title={label}
+        className="grid size-9 place-items-center rounded-md border border-line bg-raised text-fg transition hover:bg-active"
+      >
+        <current.icon className="size-4" />
+      </button>
+    )
+  }
+
   return (
-    <div role="radiogroup" aria-label={t('prefs.theme')} className={`inline-flex rounded-md border border-line bg-raised p-0.5 ${className}`}>
+    <div role="radiogroup" aria-label={t('prefs.theme')} className="inline-flex rounded-md border border-line bg-raised p-0.5">
       {OPTIONS.map((o) => (
         <button
           key={o.mode}
