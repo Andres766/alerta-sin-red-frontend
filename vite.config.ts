@@ -19,7 +19,9 @@ export default defineConfig({
       filename: 'sw.ts',
       registerType: 'prompt',
       injectRegister: false,
-      injectManifest: { globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'] },
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}', '**/inter-latin-*wght-normal*.woff2'],
+      },
       devOptions: { enabled: true, type: 'module' },
       manifest: {
         name: 'AlertaSinRed — Alertas de riesgo climático',

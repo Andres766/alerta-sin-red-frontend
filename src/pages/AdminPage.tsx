@@ -56,21 +56,21 @@ function LoginForm() {
   }
 
   return (
-    <form onSubmit={submit} className="mx-auto max-w-sm space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <span className="inline-grid size-12 place-items-center rounded-2xl bg-slate-900 text-white">
+    <form onSubmit={submit} className="mx-auto max-w-sm space-y-4 rounded-lg border border-line bg-surface p-6">
+      <span className="inline-grid size-12 place-items-center rounded-lg bg-primary text-on-primary">
         <IconShield className="size-6" />
       </span>
       <div>
         <h1 className="text-xl font-bold">Acceso de operadores</h1>
-        <p className="text-sm text-slate-600">Solo personal de gestión del riesgo municipal.</p>
+        <p className="text-sm text-muted">Solo personal de gestión del riesgo municipal.</p>
       </div>
-      {notice && <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">{notice}</p>}
+      {notice && <p className="rounded-md bg-warning-bg p-3 text-sm text-warning-ink">{notice}</p>}
       <label className="block">
         <span className="text-sm font-semibold">Correo</span>
         <input
           type="email" required autoComplete="username" placeholder="correo@entidad.gov.co"
           value={email} onChange={(e) => setEmail(e.target.value)}
-          className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3"
+          className="mt-1 w-full rounded-md border border-control px-3 py-3"
         />
       </label>
       <label className="block">
@@ -78,11 +78,11 @@ function LoginForm() {
         <input
           type="password" required minLength={8} autoComplete="current-password"
           value={password} onChange={(e) => setPassword(e.target.value)}
-          className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-3"
+          className="mt-1 w-full rounded-md border border-control px-3 py-3"
         />
       </label>
-      {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
-      <button disabled={busy} className="w-full rounded-2xl bg-slate-900 py-3 font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60">
+      {error && <p role="alert" className="text-sm text-negative-ink">{error}</p>}
+      <button disabled={busy} className="w-full rounded-lg bg-primary py-3 font-semibold text-on-primary transition hover:opacity-90 disabled:opacity-60">
         {busy ? 'Verificando…' : 'Ingresar'}
       </button>
     </form>
@@ -91,10 +91,10 @@ function LoginForm() {
 
 function StatTile({ label, value, hint }: { label: string; value: ReactNode; hint?: string }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <p className="text-sm text-slate-500">{label}</p>
+    <div className="rounded-lg border border-line bg-surface p-4">
+      <p className="text-sm text-muted">{label}</p>
       <p className="mt-1 text-3xl font-bold tabular-nums">{value}</p>
-      {hint && <p className="mt-0.5 text-xs text-slate-500">{hint}</p>}
+      {hint && <p className="mt-0.5 text-xs text-muted">{hint}</p>}
     </div>
   )
 }
@@ -102,9 +102,9 @@ function StatTile({ label, value, hint }: { label: string; value: ReactNode; hin
 function LevelDistribution({ stats }: { stats: DashboardStats }) {
   const total = Math.max(stats.zones, 1)
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <p className="text-sm text-slate-500">Zonas por nivel de riesgo</p>
-      <div className="mt-3 flex h-3 overflow-hidden rounded-full bg-slate-100">
+    <div className="rounded-lg border border-line bg-surface p-4">
+      <p className="text-sm text-muted">Zonas por nivel de riesgo</p>
+      <div className="mt-3 flex h-3 overflow-hidden rounded-full bg-raised">
         {[...LEVEL_ORDER].reverse().map((lvl) => (
           <div key={lvl} className={RISK_LEVELS[lvl].stripe} style={{ width: `${(stats.zones_by_level[lvl] / total) * 100}%` }} />
         ))}
@@ -117,7 +117,7 @@ function LevelDistribution({ stats }: { stats: DashboardStats }) {
           </li>
         ))}
         {stats.zones_by_level.SIN_EVALUAR > 0 && (
-          <li className="text-slate-500">Sin evaluar: {stats.zones_by_level.SIN_EVALUAR}</li>
+          <li className="text-muted">Sin evaluar: {stats.zones_by_level.SIN_EVALUAR}</li>
         )}
       </ul>
     </div>
@@ -175,25 +175,25 @@ function UsersPanel({ token, me }: { token: string; me: UserAccount }) {
   }
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="rounded-lg border border-line bg-surface p-5">
       <h2 className="flex items-center gap-2 font-bold">
-        <IconUsers className="size-5 text-slate-500" /> Cuentas de operadores
+        <IconUsers className="size-5 text-muted" /> Cuentas de operadores
       </h2>
-      <ul className="mt-3 divide-y divide-slate-100">
+      <ul className="mt-3 divide-y divide-rule">
         {users.map((u) => (
           <li key={u.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
             <span className="min-w-0">
-              <span className={`block truncate font-medium ${u.active ? '' : 'text-slate-400 line-through'}`}>
-                {u.email} {u.id === me.id && <span className="text-xs font-normal text-slate-500">(usted)</span>}
+              <span className={`block truncate font-medium ${u.active ? '' : 'text-faint line-through'}`}>
+                {u.email} {u.id === me.id && <span className="text-xs font-normal text-muted">(usted)</span>}
               </span>
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-muted">
                 {ROLE_LABEL[u.role]} · creada {formatDateTime(u.created_at)}
               </span>
             </span>
             {u.id !== me.id && (
               <button
                 onClick={() => void toggle(u)}
-                className={`rounded-xl border px-3 py-1.5 text-sm font-semibold transition ${u.active ? 'border-red-200 text-red-700 hover:bg-red-50' : 'border-green-200 text-green-700 hover:bg-green-50'}`}
+                className={`rounded-md border px-3 py-1.5 text-sm font-semibold transition ${u.active ? 'border-negative-ink/30 text-negative-ink hover:bg-negative-bg' : 'border-positive-ink/30 text-positive-ink hover:bg-positive-bg'}`}
               >
                 {u.active ? 'Desactivar' : 'Activar'}
               </button>
@@ -202,31 +202,31 @@ function UsersPanel({ token, me }: { token: string; me: UserAccount }) {
         ))}
       </ul>
 
-      <form onSubmit={create} className="mt-4 grid gap-2 rounded-xl bg-slate-50 p-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto_auto]">
+      <form onSubmit={create} className="mt-4 grid gap-2 rounded-md bg-raised p-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto_auto]">
         <input
           type="email" required placeholder="correo@entidad.gov.co" aria-label="Correo de la nueva cuenta"
           value={email} onChange={(e) => setEmail(e.target.value)}
-          className="rounded-xl border border-slate-300 px-3 py-2.5"
+          className="rounded-md border border-control px-3 py-2.5"
         />
         <input
           type="password" required minLength={12} autoComplete="new-password"
           placeholder="Contraseña (mín. 12)" aria-label="Contraseña de la nueva cuenta"
           value={password} onChange={(e) => setPassword(e.target.value)}
-          className="rounded-xl border border-slate-300 px-3 py-2.5"
+          className="rounded-md border border-control px-3 py-2.5"
         />
         <select
           aria-label="Rol" value={role} onChange={(e) => setRole(e.target.value as Role)}
-          className="rounded-xl border border-slate-300 bg-white px-3 py-2.5"
+          className="rounded-md border border-control bg-surface px-3 py-2.5"
         >
           <option value="OPERATOR">Operador</option>
           <option value="ADMIN">Administrador</option>
         </select>
-        <button disabled={busy} className="whitespace-nowrap rounded-xl bg-slate-900 px-4 py-2.5 font-semibold text-white disabled:opacity-60">
+        <button disabled={busy} className="whitespace-nowrap rounded-md bg-primary px-4 py-2.5 font-semibold text-on-primary disabled:opacity-60">
           Crear cuenta
         </button>
       </form>
       {message && (
-        <p role="status" className={`mt-2 text-sm ${message.ok ? 'text-green-800' : 'text-red-700'}`}>{message.text}</p>
+        <p role="status" className={`mt-2 text-sm ${message.ok ? 'text-positive-ink' : 'text-negative-ink'}`}>{message.text}</p>
       )}
     </section>
   )
@@ -273,13 +273,13 @@ function Dashboard({ token, me }: { token: string; me: UserAccount }) {
 
   return (
     <div className="space-y-5">
-      <header className="flex flex-wrap items-center justify-between gap-3 rounded-3xl bg-linear-to-br from-slate-800 to-slate-900 p-5 text-white shadow-lg">
+      <header className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-linear-to-br from-slate-800 to-slate-900 p-5 text-white">
         <div>
           <p className="text-sm text-slate-300">Panel del operador</p>
           <h1 className="text-xl font-bold">{me.email}</h1>
-          <p className="text-xs text-slate-400">{ROLE_LABEL[me.role]}</p>
+          <p className="text-xs text-faint">{ROLE_LABEL[me.role]}</p>
         </div>
-        <button onClick={() => logout()} className="rounded-xl bg-white/10 px-3 py-2 text-sm font-semibold hover:bg-white/20">
+        <button onClick={() => logout()} className="rounded-md bg-white/10 px-3 py-2 text-sm font-semibold hover:bg-white/20">
           Cerrar sesión
         </button>
       </header>
@@ -300,11 +300,11 @@ function Dashboard({ token, me }: { token: string; me: UserAccount }) {
         </>
       )}
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <section className="rounded-lg border border-line bg-surface p-5">
         <h2 className="flex items-center gap-2 font-bold">
-          <IconSparkles className="size-5 text-slate-500" /> Evaluación con el modelo de IA
+          <IconSparkles className="size-5 text-muted" /> Evaluación con el modelo de IA
         </h2>
-        <p className="mt-1 text-sm text-slate-600">
+        <p className="mt-1 text-sm text-muted">
           Descarga lluvia, humedad del suelo y caudal de Open-Meteo para cada zona, ejecuta el
           clasificador y envía SMS a los suscriptores si el riesgo es alto. Se ejecuta también
           automáticamente cada hora.
@@ -312,14 +312,14 @@ function Dashboard({ token, me }: { token: string; me: UserAccount }) {
         <button
           onClick={() => void evaluate()}
           disabled={busy}
-          className="mt-4 flex items-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
+          className="mt-4 flex items-center gap-2 rounded-lg bg-primary px-4 py-3 font-semibold text-on-primary transition hover:opacity-90 disabled:opacity-60"
         >
           <IconRefresh className={`size-5 ${busy ? 'animate-spin' : ''}`} />
           {busy ? 'Evaluando zonas…' : 'Ejecutar evaluación ahora'}
         </button>
-        {error && <p role="alert" className="mt-3 text-sm text-red-700">{error}</p>}
+        {error && <p role="alert" className="mt-3 text-sm text-negative-ink">{error}</p>}
         {result && (
-          <p className="mt-3 text-sm text-slate-700">
+          <p className="mt-3 text-sm text-fg">
             {result.evaluated} zona(s) evaluada(s)
             {Object.keys(result.failures).length > 0 &&
               ` · fallos: ${Object.entries(result.failures).map(([z, r]) => `${z} (${r})`).join(', ')}`}
@@ -327,26 +327,26 @@ function Dashboard({ token, me }: { token: string; me: UserAccount }) {
         )}
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <section className="rounded-lg border border-line bg-surface p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="font-bold">Últimos SMS</h2>
           <ExportCsvButton token={token} />
         </div>
         {alerts.length === 0 ? (
-          <p className="mt-2 text-sm text-slate-600">Todavía no se han enviado alertas.</p>
+          <p className="mt-2 text-sm text-muted">Todavía no se han enviado alertas.</p>
         ) : (
-          <ul className="mt-3 divide-y divide-slate-100 text-sm">
+          <ul className="mt-3 divide-y divide-rule text-sm">
             {alerts.map((a) => (
               <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
                 <span className="min-w-0">
                   <span className="font-medium">{zoneName(a.zone_id)}</span>
-                  <span className="block text-xs text-slate-500">
+                  <span className="block text-xs text-muted">
                     {formatDateTime(a.created_at)} · {a.channel} ·{' '}
                     {a.status === 'SENT' ? 'enviado' : `falló (${a.error})`}
                   </span>
                 </span>
                 {a.kind === 'ALL_CLEAR' ? (
-                  <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
+                  <span className="rounded-full bg-positive-bg px-2.5 py-0.5 text-xs font-semibold text-positive-ink">
                     Fin de alerta
                   </span>
                 ) : (

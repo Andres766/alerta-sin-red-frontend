@@ -7,7 +7,7 @@ export function HazardIcon({ hazard, className = 'size-5' }: { hazard: HazardTyp
   return (
     <span className={`relative inline-block ${className}`}>
       <IconMountain className="absolute inset-0 size-full" />
-      <IconWaves className="absolute -bottom-1 -right-1 size-3/5 rounded bg-white" />
+      <IconWaves className="absolute -bottom-1 -right-1 size-3/5 rounded bg-surface" />
     </span>
   )
 }

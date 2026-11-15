@@ -28,9 +28,9 @@ export function InstallBanner() {
   }
 
   return (
-    <aside aria-label="Instalar la aplicación" className="flex items-start gap-3 rounded-2xl border border-sky-200 bg-sky-50 p-4">
-      <img src="/icons/icon-192.png" alt="" className="size-10 shrink-0 rounded-xl" />
-      <div className="min-w-0 flex-1 text-sm text-sky-950">
+    <aside aria-label="Instalar la aplicación" className="flex items-start gap-3 rounded-lg border border-info-line bg-info-bg p-4">
+      <img src="/icons/icon-192.png" alt="" className="size-10 shrink-0 rounded-md" />
+      <div className="min-w-0 flex-1 text-sm text-info-ink">
         <p className="font-semibold">Instale AlertaSinRed en su celular</p>
         {mode === 'prompt' ? (
           <p className="mt-0.5">Quedará en la pantalla de inicio y abrirá aunque no tenga internet.</p>
@@ -41,11 +41,11 @@ export function InstallBanner() {
         )}
         <div className="mt-2 flex gap-2">
           {mode === 'prompt' && (
-            <button onClick={() => void install()} className="rounded-xl bg-sky-900 px-3 py-1.5 font-semibold text-white">
+            <button onClick={() => void install()} className="rounded-md bg-info-ink px-3 py-1.5 font-semibold text-surface">
               Instalar
             </button>
           )}
-          <button onClick={dismiss} className="rounded-xl px-3 py-1.5 font-semibold text-sky-900 hover:bg-sky-100">
+          <button onClick={dismiss} className="rounded-md px-3 py-1.5 font-semibold text-info-ink hover:bg-info-bg">
             Ahora no
           </button>
         </div>

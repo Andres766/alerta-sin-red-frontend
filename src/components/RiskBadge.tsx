@@ -5,7 +5,7 @@ export function RiskBadge({ level, large = false }: { level: RiskLevel | null; l
   const size = large ? 'px-4 py-1.5 text-base' : 'px-2.5 py-0.5 text-xs'
   if (!level) {
     return (
-      <span className={`inline-flex shrink-0 whitespace-nowrap rounded-full bg-slate-200 font-semibold text-slate-700 ${size}`}>
+      <span className={`inline-flex shrink-0 whitespace-nowrap rounded-full bg-active font-semibold text-fg ${size}`}>
         Sin evaluar
       </span>
     )

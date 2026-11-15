@@ -29,22 +29,22 @@ export class ErrorBoundary extends Component<Props, State> {
   render(): ReactNode {
     if (!this.state.error) return this.props.children
     return (
-      <section role="alert" className="rounded-3xl border border-red-200 bg-white p-6 text-center shadow-sm">
-        <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-red-100 text-red-700">
+      <section role="alert" className="rounded-lg border border-negative-ink/30 bg-surface p-6 text-center">
+        <span className="mx-auto grid size-12 place-items-center rounded-lg bg-negative-bg text-negative-ink">
           <IconAlert className="size-6" />
         </span>
         <h1 className="mt-3 text-xl font-bold">Algo falló al mostrar esta pantalla</h1>
-        <p className="mt-1 text-slate-600">
+        <p className="mt-1 text-muted">
           Sus datos guardados siguen a salvo. Puede volver al inicio o recargar la página.
         </p>
-        <p className="mt-3 font-semibold text-red-800">En emergencia llame al 123.</p>
+        <p className="mt-3 font-semibold text-negative-ink">En emergencia llame al 123.</p>
         <div className="mt-5 flex flex-wrap justify-center gap-2">
-          <a href="/" className="rounded-2xl bg-slate-900 px-4 py-2.5 font-semibold text-white">
+          <a href="/" className="rounded-lg bg-primary px-4 py-2.5 font-semibold text-on-primary">
             Ir al inicio
           </a>
           <button
             onClick={() => window.location.reload()}
-            className="rounded-2xl border border-slate-300 px-4 py-2.5 font-semibold"
+            className="rounded-lg border border-control px-4 py-2.5 font-semibold"
           >
             Recargar
           </button>

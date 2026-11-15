@@ -13,14 +13,14 @@ export function UpdatePrompt() {
 
   if (!needRefresh) return null
   return (
-    <div className="fixed inset-x-4 bottom-4 z-50 mx-auto flex max-w-md items-center justify-between gap-3 rounded-xl bg-slate-900 p-4 text-sm text-white shadow-lg">
+    <div className="fixed inset-x-4 bottom-4 z-50 mx-auto flex max-w-md items-center justify-between gap-3 rounded-md bg-primary p-4 text-sm text-on-primary shadow-lg">
       <span>Hay una nueva versión disponible.</span>
       <div className="flex gap-2">
-        <button className="rounded-lg px-3 py-1.5 text-slate-300" onClick={() => setNeedRefresh(false)}>
+        <button className="rounded-lg px-3 py-1.5 text-on-primary/70" onClick={() => setNeedRefresh(false)}>
           Luego
         </button>
         <button
-          className="rounded-lg bg-white px-3 py-1.5 font-semibold text-slate-900"
+          className="rounded-lg bg-surface px-3 py-1.5 font-semibold text-fg"
           onClick={() => void updateServiceWorker(true)}
         >
           Actualizar

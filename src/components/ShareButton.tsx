@@ -31,7 +31,7 @@ export function ShareButton({ item }: { item: ZoneRisk }) {
       <button
         type="button"
         onClick={() => void share()}
-        className="flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-3 font-semibold transition hover:bg-slate-50"
+        className="flex w-full items-center justify-center gap-2 rounded-lg border border-control bg-surface px-4 py-3 font-semibold transition hover:bg-raised"
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden className="size-5">
           <circle cx="18" cy="5" r="3" />
@@ -42,7 +42,7 @@ export function ShareButton({ item }: { item: ZoneRisk }) {
         Compartir esta alerta
       </button>
       {feedback && (
-        <p role="status" className="mt-2 text-center text-sm text-slate-600">
+        <p role="status" className="mt-2 text-center text-sm text-muted">
           {feedback}
         </p>
       )}

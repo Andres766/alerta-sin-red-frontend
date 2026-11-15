@@ -12,12 +12,12 @@ const percent = (value: number | undefined) =>
 
 function Step({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="rounded-lg border border-line bg-surface p-5">
       <h2 className="flex items-center gap-2 font-bold">
-        <span className="grid size-9 place-items-center rounded-xl bg-slate-100 text-slate-700">{icon}</span>
+        <span className="grid size-9 place-items-center rounded-md bg-raised text-fg">{icon}</span>
         {title}
       </h2>
-      <div className="mt-2 space-y-2 text-slate-700">{children}</div>
+      <div className="mt-2 space-y-2 text-fg">{children}</div>
     </section>
   )
 }
@@ -41,7 +41,7 @@ export function HowItWorksPage() {
 
   return (
     <div className="space-y-5">
-      <header className="rounded-3xl bg-linear-to-br from-slate-800 to-slate-900 p-5 text-white shadow-lg">
+      <header className="rounded-lg bg-linear-to-br from-slate-800 to-slate-900 p-5 text-white">
         <h1 className="text-2xl font-bold">Cómo funciona AlertaSinRed</h1>
         <p className="mt-1 text-slate-300">
           Alertas de riesgo de deslizamiento y creciente de ríos que siguen disponibles cuando
@@ -81,19 +81,19 @@ export function HowItWorksPage() {
           no necesita datos ni internet: basta con señal de celular. Cuando el riesgo baja, le
           avisamos que la alerta terminó.
         </p>
-        <Link to="/suscribirme" className="inline-block font-semibold text-slate-900 underline">
+        <Link to="/suscribirme" className="inline-block font-semibold text-fg underline">
           Suscribirme a las alertas
         </Link>
       </Step>
 
-      <section aria-labelledby="ficha" className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <section aria-labelledby="ficha" className="rounded-lg border border-line bg-surface p-5">
         <h2 id="ficha" className="font-bold">Ficha técnica del modelo</h2>
         {error && (
-          <p className="mt-2 text-sm text-slate-600">
+          <p className="mt-2 text-sm text-muted">
             No se pudo cargar la ficha del modelo. Conéctese para verla.
           </p>
         )}
-        {!card && !error && <div className="mt-3 h-32 animate-pulse rounded-xl bg-slate-100" aria-hidden />}
+        {!card && !error && <div className="mt-3 h-32 animate-pulse rounded-md bg-raised" aria-hidden />}
         {card && (
           <>
             <dl className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -103,23 +103,23 @@ export function HowItWorksPage() {
                 ['Detecta "alto"', percent(card.metrics.recall_alto)],
                 ['Detecta "muy alto"', percent(card.metrics.recall_muy_alto)],
               ].map(([label, value]) => (
-                <div key={label} className="rounded-xl bg-slate-50 p-3">
-                  <dt className="text-xs text-slate-500">{label}</dt>
+                <div key={label} className="rounded-md bg-raised p-3">
+                  <dt className="text-xs text-muted">{label}</dt>
                   <dd className="text-xl font-bold tabular-nums">{value}</dd>
                 </div>
               ))}
             </dl>
-            <p className="mt-2 text-xs text-slate-500">
+            <p className="mt-2 text-xs text-muted">
               {card.algorithm} · versión {card.version} · entrenado {formatDateTime(card.trained_at)} con{' '}
               {card.n_samples.toLocaleString('es-CO')} ejemplos ({card.data_source})
             </p>
 
-            <h3 className="mt-5 text-sm font-semibold text-slate-700">¿Qué variables pesan más?</h3>
+            <h3 className="mt-5 text-sm font-semibold text-fg">¿Qué variables pesan más?</h3>
             <ul className="mt-2 space-y-1.5">
               {importances.map(([name, value]) => (
                 <li key={name} className="flex items-center gap-3 text-sm">
-                  <span className="w-44 shrink-0 text-slate-600">{FEATURE_LABEL[name]?.label ?? name}</span>
-                  <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-100">
+                  <span className="w-44 shrink-0 text-muted">{FEATURE_LABEL[name]?.label ?? name}</span>
+                  <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-raised">
                     <span className="block h-full rounded-full bg-slate-700" style={{ width: `${(value / maxImportance) * 100}%` }} />
                   </span>
                   <span className="w-10 text-right tabular-nums">{percent(value)}</span>
@@ -127,8 +127,8 @@ export function HowItWorksPage() {
               ))}
             </ul>
 
-            <h3 className="mt-5 text-sm font-semibold text-slate-700">Limitaciones conocidas</h3>
-            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
+            <h3 className="mt-5 text-sm font-semibold text-fg">Limitaciones conocidas</h3>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-fg">
               {card.limitations.map((l) => (
                 <li key={l}>{l}</li>
               ))}
@@ -137,7 +137,7 @@ export function HowItWorksPage() {
         )}
       </section>
 
-      <p className="text-center text-sm text-slate-600">
+      <p className="text-center text-sm text-muted">
         Esta herramienta complementa, no reemplaza, los avisos oficiales de la UNGRD, el IDEAM y
         las alcaldías. En emergencia llame al <strong>123</strong>.
       </p>

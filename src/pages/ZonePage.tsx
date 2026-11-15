@@ -50,13 +50,13 @@ export function ZonePage() {
 
   if (item === undefined) {
     if (fetched && fetched.id === zoneId && fetched.error) {
-      return <p className="rounded-2xl bg-amber-50 p-5 text-amber-900">{fetched.error}</p>
+      return <p className="rounded-lg bg-warning-bg p-5 text-warning-ink">{fetched.error}</p>
     }
-    return <div className="h-64 animate-pulse rounded-3xl bg-slate-300/60" aria-label="Cargando zona" />
+    return <div className="h-64 animate-pulse rounded-lg bg-active" aria-label="Cargando zona" />
   }
   if (item === null) {
     return (
-      <p className="rounded-2xl bg-white p-5 text-slate-600">
+      <p className="rounded-lg bg-surface p-5 text-muted">
         Zona no encontrada. <Link to="/" className="font-semibold underline">Volver al inicio</Link>
       </p>
     )
@@ -67,13 +67,13 @@ export function ZonePage() {
   return (
     <article className="space-y-5">
       <div className="flex items-center justify-between gap-2">
-        <Link to="/" className="text-sm font-medium text-slate-600 hover:underline">
+        <Link to="/" className="text-sm font-medium text-muted hover:underline">
           ← Todas las zonas
         </Link>
         <button
           onClick={() => void setFavorite(favoriteId === zone.id ? null : zone.id)}
           aria-pressed={favoriteId === zone.id}
-          className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-sm font-semibold transition ${favoriteId === zone.id ? 'border-amber-300 bg-amber-50 text-amber-800' : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'}`}
+          className={`flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-semibold transition ${favoriteId === zone.id ? 'border-warning-line bg-warning-bg text-warning-ink' : 'border-control bg-surface text-fg hover:bg-raised'}`}
         >
           <IconStar filled={favoriteId === zone.id} className="size-4" />
           {favoriteId === zone.id ? 'Es mi zona' : 'Fijar como mi zona'}
@@ -81,7 +81,7 @@ export function ZonePage() {
       </div>
 
       <header
-        className={`rounded-3xl bg-linear-to-br p-5 text-white shadow-lg ${info?.hero ?? 'from-slate-600 to-slate-800'}`}
+        className={`rounded-lg bg-linear-to-br p-5 text-white ${info?.hero ?? 'from-slate-600 to-slate-800'}`}
       >
         <p className="flex items-center gap-2 text-sm text-white/85">
           <HazardIcon hazard={zone.hazard_type} className="size-4" />
@@ -111,9 +111,9 @@ export function ZonePage() {
       </header>
 
       {assessment && info && (
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <section className="rounded-lg border border-line bg-surface p-5">
           <h2 className="flex items-center gap-2 font-bold">
-            <IconAlert className="size-5 text-slate-500" /> ¿Qué hacer?
+            <IconAlert className="size-5 text-muted" /> ¿Qué hacer?
           </h2>
           <ol className="mt-3 space-y-2">
             {info.recommendations.map((r, i) => (
@@ -129,28 +129,28 @@ export function ZonePage() {
       )}
 
       {assessment && (
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <section className="rounded-lg border border-line bg-surface p-5">
           <h2 className="flex items-center gap-2 font-bold">
-            <IconSparkles className="size-5 text-slate-500" /> ¿Por qué este nivel?
+            <IconSparkles className="size-5 text-muted" /> ¿Por qué este nivel?
           </h2>
           {assessment.key_factors.length ? (
             <ul className="mt-3 flex flex-wrap gap-2">
               {assessment.key_factors.map((f) => (
-                <li key={f} className="rounded-full bg-slate-100 px-3 py-1.5 text-sm text-slate-700">{f}</li>
+                <li key={f} className="rounded-full bg-raised px-3 py-1.5 text-sm text-fg">{f}</li>
               ))}
             </ul>
           ) : (
-            <p className="mt-2 text-slate-600">No hay factores de riesgo destacados.</p>
+            <p className="mt-2 text-muted">No hay factores de riesgo destacados.</p>
           )}
 
-          <h3 className="mt-5 text-sm font-semibold text-slate-700">Probabilidad por nivel (modelo de IA)</h3>
+          <h3 className="mt-5 text-sm font-semibold text-fg">Probabilidad por nivel (modelo de IA)</h3>
           <div className="mt-2 space-y-2">
             {LEVEL_ORDER.map((lvl) => {
               const p = assessment.probabilities[lvl] ?? 0
               return (
                 <div key={lvl} className="flex items-center gap-3 text-sm">
-                  <span className="w-16 shrink-0 text-slate-600">{RISK_LEVELS[lvl].label}</span>
-                  <div className="h-3 flex-1 overflow-hidden rounded-full bg-slate-100">
+                  <span className="w-16 shrink-0 text-muted">{RISK_LEVELS[lvl].label}</span>
+                  <div className="h-3 flex-1 overflow-hidden rounded-full bg-raised">
                     <div className={`h-full rounded-full ${RISK_LEVELS[lvl].stripe}`} style={{ width: `${p * 100}%` }} />
                   </div>
                   <span className="w-10 text-right font-semibold tabular-nums">{Math.round(p * 100)}%</span>
@@ -159,24 +159,24 @@ export function ZonePage() {
             })}
           </div>
 
-          <h3 className="mt-6 text-sm font-semibold text-slate-700">Variables de entrada</h3>
+          <h3 className="mt-6 text-sm font-semibold text-fg">Variables de entrada</h3>
           <dl className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
             {Object.entries(assessment.features).map(([key, value]) => (
-              <div key={key} className="rounded-xl bg-slate-50 p-3">
-                <dt className="text-xs text-slate-500">{FEATURE_LABEL[key]?.label ?? key}</dt>
+              <div key={key} className="rounded-md bg-raised p-3">
+                <dt className="text-xs text-muted">{FEATURE_LABEL[key]?.label ?? key}</dt>
                 <dd className="mt-0.5 font-bold tabular-nums">
                   {Number(value).toLocaleString('es-CO', { maximumFractionDigits: 2 })}{' '}
-                  <span className="text-xs font-normal text-slate-500">{FEATURE_LABEL[key]?.unit}</span>
+                  <span className="text-xs font-normal text-muted">{FEATURE_LABEL[key]?.unit}</span>
                 </dd>
               </div>
             ))}
           </dl>
-          <p className="mt-3 text-xs text-slate-500">Fuente del clima: {assessment.weather_source}</p>
+          <p className="mt-3 text-xs text-muted">Fuente del clima: {assessment.weather_source}</p>
         </section>
       )}
 
       {history.length > 1 && (
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <section className="rounded-lg border border-line bg-surface p-5">
           <h2 className="font-bold">Evolución reciente</h2>
           <div className="mt-3 flex h-16 items-end gap-1" aria-hidden>
             {[...history].reverse().map((h) => (
@@ -188,10 +188,10 @@ export function ZonePage() {
               />
             ))}
           </div>
-          <ol className="mt-4 divide-y divide-slate-100 text-sm">
+          <ol className="mt-4 divide-y divide-rule text-sm">
             {history.slice(0, 5).map((h) => (
               <li key={h.id} className="flex items-center justify-between py-2">
-                <span className="text-slate-600">{formatDateTime(h.assessed_at)}</span>
+                <span className="text-muted">{formatDateTime(h.assessed_at)}</span>
                 <RiskBadge level={h.level} />
               </li>
             ))}
@@ -201,7 +201,7 @@ export function ZonePage() {
 
       <Link
         to={`/suscribirme?zona=${zone.id}`}
-        className="flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3.5 font-semibold text-white shadow-sm transition hover:bg-slate-800"
+        className="flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3.5 font-semibold text-on-primary transition hover:opacity-90"
       >
         <IconBell className="size-5" /> Recibir alertas por SMS de esta zona
       </Link>

@@ -6,7 +6,7 @@ import { adminService } from '../../services'
 import { IconMapPin } from '../icons'
 
 const HAZARDS: HazardType[] = ['DESLIZAMIENTO', 'CRECIENTE', 'MIXTO']
-const field = 'rounded-xl border border-slate-300 bg-white px-3 py-2'
+const field = 'rounded-md border border-control bg-surface px-3 py-2'
 
 const EMPTY: NewZone = {
   name: '', municipality: '', department: 'Nariño', hazard_type: 'DESLIZAMIENTO',
@@ -37,7 +37,7 @@ function ZoneRow({ zone, token, onSaved }: { zone: Zone; token: string; onSaved:
     <li className="grid gap-2 py-3 sm:grid-cols-[1fr_auto_auto_auto_auto] sm:items-center">
       <span className="min-w-0">
         <span className="block truncate font-medium">{zone.name}</span>
-        <span className="text-xs text-slate-500">
+        <span className="text-xs text-muted">
           {zone.latitude.toFixed(4)}, {zone.longitude.toFixed(4)}
         </span>
       </span>
@@ -58,7 +58,7 @@ function ZoneRow({ zone, token, onSaved }: { zone: Zone; token: string; onSaved:
           value={slope} onChange={(e) => setSlope(Number(e.target.value))} className={`${field} w-20`} />°
       </label>
       <button type="button" disabled={!changed} onClick={() => void save()}
-        className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white disabled:opacity-30">
+        className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-on-primary disabled:opacity-30">
         Guardar
       </button>
     </li>
@@ -95,14 +95,14 @@ export function ZonesPanel({ token }: { token: string }) {
   }
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="rounded-lg border border-line bg-surface p-5">
       <h2 className="flex items-center gap-2 font-bold">
-        <IconMapPin className="size-5 text-slate-500" /> Zonas monitoreadas
+        <IconMapPin className="size-5 text-muted" /> Zonas monitoreadas
       </h2>
-      <p className="mt-1 text-sm text-slate-600">
+      <p className="mt-1 text-sm text-muted">
         Ajuste la capa estática (amenaza, susceptibilidad SGC de 1 a 5 y pendiente) o registre zonas nuevas.
       </p>
-      <ul className="mt-2 divide-y divide-slate-100">
+      <ul className="mt-2 divide-y divide-rule">
         {zones.map((z) => (
           // key con los valores: si cambian en el servidor, la fila se reinicia con ellos
           <ZoneRow key={`${z.id}-${z.hazard_type}-${z.susceptibility}-${z.slope_deg}`} zone={z} token={token}
@@ -110,7 +110,7 @@ export function ZonesPanel({ token }: { token: string }) {
         ))}
       </ul>
 
-      <form onSubmit={create} className="mt-4 grid gap-2 rounded-xl bg-slate-50 p-3 sm:grid-cols-2">
+      <form onSubmit={create} className="mt-4 grid gap-2 rounded-md bg-raised p-3 sm:grid-cols-2">
         <h3 className="text-sm font-semibold sm:col-span-2">Registrar una zona nueva</h3>
         <input required minLength={3} maxLength={120} placeholder="Nombre (p. ej. Ipiales - Barrio El Charco)"
           aria-label="Nombre de la zona" value={draft.name} onChange={(e) => set('name', e.target.value)} className={`${field} sm:col-span-2`} />
@@ -123,28 +123,28 @@ export function ZonesPanel({ token }: { token: string }) {
           {HAZARDS.map((h) => <option key={h} value={h}>{HAZARD_LABEL[h]}</option>)}
         </select>
         <div className="grid grid-cols-2 gap-2">
-          <label className="text-xs text-slate-600">Susceptibilidad (1–5)
+          <label className="text-xs text-muted">Susceptibilidad (1–5)
             <input type="number" min={1} max={5} required value={draft.susceptibility}
               onChange={(e) => set('susceptibility', Number(e.target.value))} className={`${field} w-full`} />
           </label>
-          <label className="text-xs text-slate-600">Pendiente (°)
+          <label className="text-xs text-muted">Pendiente (°)
             <input type="number" min={0} max={90} step={0.5} required value={draft.slope_deg}
               onChange={(e) => set('slope_deg', Number(e.target.value))} className={`${field} w-full`} />
           </label>
         </div>
-        <label className="text-xs text-slate-600">Latitud
+        <label className="text-xs text-muted">Latitud
           <input type="number" step="0.0001" min={-4.3} max={13.6} required value={draft.latitude}
             onChange={(e) => set('latitude', Number(e.target.value))} className={`${field} w-full`} />
         </label>
-        <label className="text-xs text-slate-600">Longitud
+        <label className="text-xs text-muted">Longitud
           <input type="number" step="0.0001" min={-82} max={-66.8} required value={draft.longitude}
             onChange={(e) => set('longitude', Number(e.target.value))} className={`${field} w-full`} />
         </label>
-        <button disabled={busy} className="rounded-xl bg-slate-900 px-4 py-2.5 font-semibold text-white disabled:opacity-60 sm:col-span-2 sm:justify-self-start">
+        <button disabled={busy} className="rounded-md bg-primary px-4 py-2.5 font-semibold text-on-primary disabled:opacity-60 sm:col-span-2 sm:justify-self-start">
           {busy ? 'Registrando…' : 'Registrar zona'}
         </button>
       </form>
-      {message && <p role="status" className="mt-2 text-sm text-slate-700">{message}</p>}
+      {message && <p role="status" className="mt-2 text-sm text-fg">{message}</p>}
     </section>
   )
 }

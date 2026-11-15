@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import type { LatLon } from '../domain/geo'
-import { NOT_EVALUATED_HEX, RISK_LEVELS } from '../domain/riskLevel'
+import { NOT_EVALUATED_COLOR, RISK_LEVELS } from '../domain/riskLevel'
 import type { ZoneRisk } from '../domain/types'
 
 const WIDTH = 400
@@ -67,21 +67,21 @@ export function ZoneMap({ items, user }: { items: ZoneRisk[]; user?: LatLon | nu
     .join('; ')
 
   return (
-    <figure className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <figure className="overflow-hidden rounded-lg border border-line bg-surface">
       {/* Sin role="img": ese rol vuelve "presentacionales" a los hijos y ocultaba los
           enlaces de cada zona a los lectores de pantalla. */}
       <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} aria-labelledby="mapa-titulo" className="block w-full">
         <title id="mapa-titulo">{`Mapa esquemático de zonas. ${summary}`}</title>
         <defs>
           <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-            <path d="M20 0H0V20" fill="none" stroke="#e2e8f0" strokeWidth="0.6" />
+            <path d="M20 0H0V20" fill="none" className="stroke-line" strokeWidth="0.6" />
           </pattern>
         </defs>
-        <rect width={WIDTH} height={HEIGHT} fill="#f8fafc" />
+        <rect width={WIDTH} height={HEIGHT} className="fill-raised" />
         <rect width={WIDTH} height={HEIGHT} fill="url(#grid)" />
         {ordered.map(({ zone, assessment }) => {
           const { x, y } = project(zone)
-          const color = assessment ? RISK_LEVELS[assessment.level].hex : NOT_EVALUATED_HEX
+          const color = assessment ? RISK_LEVELS[assessment.level].color : NOT_EVALUATED_COLOR
           const urgent = assessment ? RISK_LEVELS[assessment.level].severity >= 2 : false
           const showLabel = !labeled.has(zone.municipality)
           labeled.add(zone.municipality)
@@ -101,9 +101,9 @@ export function ZoneMap({ items, user }: { items: ZoneRisk[]; user?: LatLon | nu
               }}
             >
               {urgent && (
-                <circle cx={x} cy={y} r={9} fill={color} opacity={0.35} className="map-pulse" />
+                <circle cx={x} cy={y} r={9} style={{ fill: color }} opacity={0.35} className="map-pulse" />
               )}
-              <circle cx={x} cy={y} r={7.5} fill={color} stroke="white" strokeWidth={2.5} />
+              <circle cx={x} cy={y} r={7.5} style={{ fill: color }} className="stroke-surface" strokeWidth={2.5} />
               {showLabel && (() => {
                 const label = placeLabel(x, y, zone.municipality, placed)
                 return (
@@ -113,9 +113,9 @@ export function ZoneMap({ items, user }: { items: ZoneRisk[]; user?: LatLon | nu
                   textAnchor={label.anchor}
                   fontSize="11"
                   fontWeight="600"
-                  fill="#334155"
+                  className="fill-fg"
                   paintOrder="stroke"
-                  stroke="#f8fafc"
+                  style={{ stroke: 'var(--raised)' }}
                   strokeWidth="3"
                 >
                   {zone.municipality}
@@ -130,15 +130,15 @@ export function ZoneMap({ items, user }: { items: ZoneRisk[]; user?: LatLon | nu
           return (
             <g aria-label="Su ubicación">
               <circle cx={x} cy={y} r={11} fill="#0284c7" opacity={0.18} />
-              <circle cx={x} cy={y} r={5} fill="#0284c7" stroke="white" strokeWidth={2} />
+              <circle cx={x} cy={y} r={5} fill="#0284c7" className="stroke-surface" strokeWidth={2} />
             </g>
           )
         })()}
       </svg>
-      <figcaption className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-slate-100 px-4 py-2.5 text-xs text-slate-600">
+      <figcaption className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-line px-4 py-2.5 text-xs text-muted">
         {(['BAJO', 'MODERADO', 'ALTO', 'MUY_ALTO'] as const).map((lvl) => (
           <span key={lvl} className="inline-flex items-center gap-1.5">
-            <span className="size-2.5 rounded-full" style={{ backgroundColor: RISK_LEVELS[lvl].hex }} />
+            <span className="size-2.5 rounded-full" style={{ backgroundColor: RISK_LEVELS[lvl].color }} />
             {RISK_LEVELS[lvl].label}
           </span>
         ))}
@@ -147,7 +147,7 @@ export function ZoneMap({ items, user }: { items: ZoneRisk[]; user?: LatLon | nu
             <span className="size-2.5 rounded-full bg-sky-600" /> Usted
           </span>
         )}
-        <span className="ml-auto text-slate-400">Esquema, no a escala de calles</span>
+        <span className="ml-auto text-faint">Esquema, no a escala de calles</span>
       </figcaption>
     </figure>
   )

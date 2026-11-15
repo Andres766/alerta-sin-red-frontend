@@ -48,9 +48,9 @@ export function ChangePasswordForm({ token }: { token: string }) {
     }
   }
 
-  const field = 'w-full rounded-xl border border-slate-300 px-3 py-2.5'
+  const field = 'w-full rounded-md border border-control px-3 py-2.5'
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="rounded-lg border border-line bg-surface p-5">
       <h2 className="font-bold">Mi cuenta: cambiar contraseña</h2>
       <form onSubmit={submit} className="mt-3 grid gap-2 sm:grid-cols-3">
         <input type="password" required autoComplete="current-password" placeholder="Contraseña actual"
@@ -60,12 +60,12 @@ export function ChangePasswordForm({ token }: { token: string }) {
           value={next} onChange={(e) => setNext(e.target.value)} className={field} />
         <input type="password" required autoComplete="new-password" placeholder="Repita la nueva"
           aria-label="Confirmar nueva contraseña" value={confirm} onChange={(e) => setConfirm(e.target.value)} className={field} />
-        <button disabled={busy} className="rounded-xl bg-slate-900 px-4 py-2.5 font-semibold text-white disabled:opacity-60 sm:col-span-3 sm:justify-self-start">
+        <button disabled={busy} className="rounded-md bg-primary px-4 py-2.5 font-semibold text-on-primary disabled:opacity-60 sm:col-span-3 sm:justify-self-start">
           {busy ? 'Guardando…' : 'Cambiar contraseña'}
         </button>
       </form>
       {message && (
-        <p role="status" className={`mt-2 text-sm ${message.ok ? 'text-green-800' : 'text-red-700'}`}>{message.text}</p>
+        <p role="status" className={`mt-2 text-sm ${message.ok ? 'text-positive-ink' : 'text-negative-ink'}`}>{message.text}</p>
       )}
     </section>
   )

@@ -11,7 +11,7 @@ export function RiskSummary({ items }: { items: ZoneRisk[] }) {
 
   if (!worst?.assessment) {
     return (
-      <section className="rounded-3xl bg-linear-to-br from-slate-700 to-slate-900 p-5 text-white shadow-lg">
+      <section className="rounded-lg bg-linear-to-br from-slate-700 to-slate-900 p-5 text-white">
         <p className="text-sm font-medium text-slate-300">Estado de la región</p>
         <p className="mt-1 text-xl font-bold">Aún no hay evaluaciones de riesgo</p>
         <p className="mt-1 text-sm text-slate-300">El sistema evalúa las zonas cada hora.</p>
@@ -24,10 +24,10 @@ export function RiskSummary({ items }: { items: ZoneRisk[] }) {
   return (
     <section
       aria-labelledby="estado-region"
-      className={`rounded-3xl bg-linear-to-br ${info.hero} p-5 text-white shadow-lg`}
+      className={`rounded-lg bg-linear-to-br ${info.hero} p-5 text-white`}
     >
       <div className="flex items-start gap-3">
-        <span className="rounded-2xl bg-white/15 p-2.5">
+        <span className="rounded-lg bg-white/15 p-2.5">
           {calm ? <IconShield className="size-6" /> : <IconAlert className="size-6" />}
         </span>
         <div className="min-w-0">
@@ -41,7 +41,7 @@ export function RiskSummary({ items }: { items: ZoneRisk[] }) {
       {!calm && (
         <Link
           to={`/zona/${worst.zone.id}`}
-          className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-white/15 px-4 py-3 transition hover:bg-white/25"
+          className="mt-4 flex items-center justify-between gap-3 rounded-lg bg-white/15 px-4 py-3 transition hover:bg-white/25"
         >
           <span className="min-w-0">
             <span className="block text-xs text-white/80">Zona más crítica</span>
@@ -53,7 +53,7 @@ export function RiskSummary({ items }: { items: ZoneRisk[] }) {
 
       <dl className="mt-4 grid grid-cols-4 gap-2 text-center">
         {[...LEVEL_ORDER].reverse().map((lvl) => (
-          <div key={lvl} className="rounded-xl bg-black/15 px-1 py-2">
+          <div key={lvl} className="rounded-md bg-black/15 px-1 py-2">
             <dt className="text-[11px] leading-tight text-white/80">{RISK_LEVELS[lvl].label}</dt>
             <dd className="text-xl font-bold tabular-nums">{counts[lvl]}</dd>
           </div>

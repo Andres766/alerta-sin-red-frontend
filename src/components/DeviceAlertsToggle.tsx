@@ -36,7 +36,7 @@ export function DeviceAlertsToggle() {
   if (status === 'unsupported') return null
   if (status === 'denied') {
     return (
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-muted">
         Las notificaciones están bloqueadas para este sitio; actívelas en la configuración del navegador.
       </p>
     )
@@ -46,7 +46,7 @@ export function DeviceAlertsToggle() {
       type="button"
       onClick={() => void toggle()}
       aria-pressed={status === 'on'}
-      className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition ${status === 'on' ? 'border-emerald-300 bg-emerald-50 text-emerald-800' : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'}`}
+      className={`flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-semibold transition ${status === 'on' ? 'border-positive-ink/30 bg-positive-bg text-positive-ink' : 'border-control bg-surface text-fg hover:bg-raised'}`}
     >
       <IconBell className="size-4" />
       {status === 'on' ? 'Avisos en este celular: activados' : 'Avisarme en este celular'}

@@ -28,7 +28,7 @@ function SkeletonList() {
   return (
     <div className="grid gap-3" aria-hidden>
       {[0, 1, 2].map((i) => (
-        <div key={i} className="h-20 animate-pulse rounded-2xl bg-white" />
+        <div key={i} className="h-20 animate-pulse rounded-lg bg-surface" />
       ))}
     </div>
   )
@@ -84,7 +84,7 @@ export function HomePage() {
       {favorite && (
         <section aria-labelledby="mi-zona" className="space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 id="mi-zona" className="flex items-center gap-1.5 text-sm font-semibold text-amber-800">
+            <h2 id="mi-zona" className="flex items-center gap-1.5 text-sm font-semibold text-warning-ink">
               <IconStar filled className="size-4" /> Mi zona
             </h2>
             <DeviceAlertsToggle />
@@ -93,7 +93,7 @@ export function HomePage() {
         </section>
       )}
       {stale && lastEvaluation && (
-        <p role="alert" className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+        <p role="alert" className="rounded-lg border border-warning-line bg-warning-bg p-4 text-sm text-warning-ink">
           <strong>Datos desactualizados:</strong> la última evaluación es de{' '}
           <RelativeTime iso={lastEvaluation} /> (más de {STALE_AFTER_HOURS} horas). El riesgo actual
           puede ser distinto: si llueve fuerte, siga las indicaciones de las autoridades.
@@ -103,7 +103,7 @@ export function HomePage() {
         {data ? (
           <RiskSummary items={items} />
         ) : (
-          <div className="h-48 animate-pulse rounded-3xl bg-slate-300/60" aria-hidden />
+          <div className="h-48 animate-pulse rounded-lg bg-active" aria-hidden />
         )}
         {items.length > 0 && (
           <ZoneMap items={items} user={nearby.status === 'done' ? nearby.position : null} />
@@ -116,7 +116,7 @@ export function HomePage() {
         <button
           onClick={locate}
           disabled={nearby.status === 'locating'}
-          className="flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:opacity-60"
+          className="flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 font-semibold text-on-primary transition hover:opacity-90 disabled:opacity-60"
         >
           <IconMapPin className="size-5" />
           {nearby.status === 'locating' ? 'Ubicando…' : 'Cerca de mí'}
@@ -124,7 +124,7 @@ export function HomePage() {
         <button
           onClick={() => void refresh()}
           disabled={loading}
-          className="flex items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-3 font-semibold shadow-sm transition hover:bg-slate-50 disabled:opacity-60"
+          className="flex items-center justify-center gap-2 rounded-lg border border-control bg-surface px-4 py-3 font-semibold transition hover:bg-raised disabled:opacity-60"
         >
           <IconRefresh className={`size-5 ${loading ? 'animate-spin' : ''}`} />
           {loading ? 'Actualizando…' : 'Actualizar'}
@@ -132,19 +132,19 @@ export function HomePage() {
       </div>
 
       {nearby.status === 'error' && (
-        <p role="alert" className="rounded-2xl bg-red-50 p-3 text-sm text-red-800">{nearby.message}</p>
+        <p role="alert" className="rounded-lg bg-negative-bg p-3 text-sm text-negative-ink">{nearby.message}</p>
       )}
 
       {nearby.status === 'done' && (
         <section aria-labelledby="cerca" className="space-y-3">
           <h2 id="cerca" className="text-lg font-bold">
             Cerca de usted{' '}
-            <span className="text-sm font-normal text-slate-500">
+            <span className="text-sm font-normal text-muted">
               ({nearby.source === 'network' ? 'consulta espacial PostGIS' : 'calculado en el dispositivo'})
             </span>
           </h2>
           {nearby.zones.length === 0 ? (
-            <p className="rounded-2xl bg-white p-4 text-slate-600">
+            <p className="rounded-lg bg-surface p-4 text-muted">
               No hay zonas monitoreadas en 50 km a la redonda.
             </p>
           ) : (
@@ -161,18 +161,18 @@ export function HomePage() {
         <div className="flex items-baseline justify-between gap-2">
           <h2 id="todas" className="text-lg font-bold">Zonas monitoreadas</h2>
           {data && (
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-muted">
               {data.source === 'network' ? 'Actualizado' : 'Guardado'} <RelativeTime iso={data.savedAt} />
             </span>
           )}
         </div>
-        {error && !data && <p className="rounded-2xl bg-amber-50 p-4 text-amber-900">{error}</p>}
+        {error && !data && <p className="rounded-lg bg-warning-bg p-4 text-warning-ink">{error}</p>}
         {!data && loading && <SkeletonList />}
         {items.length > 0 && (
           <ZoneFilters query={query} onQuery={setQuery} levels={levels} onToggleLevel={toggleLevel} />
         )}
         {(query || levels.size > 0) && (
-          <p role="status" className="text-sm text-slate-600">
+          <p role="status" className="text-sm text-muted">
             Mostrando {visible.length} de {items.length} zonas
             {visible.length === 0 && ' · ninguna coincide con la búsqueda'}
           </p>
@@ -182,12 +182,12 @@ export function HomePage() {
         </div>
       </section>
 
-      <p className="text-center text-sm text-slate-600">
+      <p className="text-center text-sm text-muted">
         <Link to="/como-funciona" className="font-semibold underline">
           ¿Cómo se calcula el riesgo?
         </Link>
       </p>
-      <p className="text-center text-xs text-slate-500 sm:hidden">
+      <p className="text-center text-xs text-muted sm:hidden">
         En emergencia llame al <strong>123</strong>
       </p>
     </div>

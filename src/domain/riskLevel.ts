@@ -4,8 +4,8 @@ interface RiskLevelInfo {
   label: string
   alert: string
   severity: number
-  /** Color del nivel para SVG (mapa esquemático). */
-  hex: string
+  /** Color del nivel como variable CSS (cambia con el tema claro u oscuro). */
+  color: string
   /** Clases Tailwind precompuestas (Tailwind necesita ver los nombres completos). */
   badge: string
   surface: string
@@ -19,9 +19,9 @@ export const RISK_LEVELS: Record<RiskLevel, RiskLevelInfo> = {
     label: 'Bajo',
     alert: 'Sin alerta',
     severity: 0,
-    hex: '#15803d',
-    badge: 'bg-risk-low text-white',
-    surface: 'border-risk-low/30 bg-white',
+    color: 'var(--risk-low)',
+    badge: 'bg-risk-low text-white dark:text-black',
+    surface: 'border-line bg-surface',
     stripe: 'bg-risk-low',
     hero: 'from-green-700 to-green-800',
     recommendations: [
@@ -33,9 +33,9 @@ export const RISK_LEVELS: Record<RiskLevel, RiskLevelInfo> = {
     label: 'Moderado',
     alert: 'Alerta amarilla',
     severity: 1,
-    hex: '#ca8a04',
-    badge: 'bg-risk-moderate text-slate-950',
-    surface: 'border-risk-moderate/40 bg-white',
+    color: 'var(--risk-moderate)',
+    badge: 'bg-risk-moderate text-black',
+    surface: 'border-line bg-surface',
     stripe: 'bg-risk-moderate',
     hero: 'from-yellow-600 to-amber-700',
     recommendations: [
@@ -48,9 +48,9 @@ export const RISK_LEVELS: Record<RiskLevel, RiskLevelInfo> = {
     label: 'Alto',
     alert: 'Alerta naranja',
     severity: 2,
-    hex: '#ea580c',
-    badge: 'bg-risk-high text-white',
-    surface: 'border-risk-high/40 bg-orange-50/60',
+    color: 'var(--risk-high)',
+    badge: 'bg-risk-high text-white dark:text-black',
+    surface: 'border-risk-high/40 bg-risk-high/5',
     stripe: 'bg-risk-high',
     hero: 'from-orange-600 to-orange-700',
     recommendations: [
@@ -63,9 +63,9 @@ export const RISK_LEVELS: Record<RiskLevel, RiskLevelInfo> = {
     label: 'Muy alto',
     alert: 'Alerta roja',
     severity: 3,
-    hex: '#dc2626',
-    badge: 'bg-risk-extreme text-white',
-    surface: 'border-risk-extreme/40 bg-red-50/70',
+    color: 'var(--risk-extreme)',
+    badge: 'bg-risk-extreme text-white dark:text-black',
+    surface: 'border-risk-extreme/40 bg-risk-extreme/5',
     stripe: 'bg-risk-extreme',
     hero: 'from-red-600 to-red-700',
     recommendations: [
@@ -78,7 +78,7 @@ export const RISK_LEVELS: Record<RiskLevel, RiskLevelInfo> = {
 
 export const LEVEL_ORDER: RiskLevel[] = ['BAJO', 'MODERADO', 'ALTO', 'MUY_ALTO']
 
-export const NOT_EVALUATED_HEX = '#94a3b8'
+export const NOT_EVALUATED_COLOR = 'var(--risk-none)'
 
 export const HAZARD_LABEL: Record<HazardType, string> = {
   DESLIZAMIENTO: 'Deslizamiento',

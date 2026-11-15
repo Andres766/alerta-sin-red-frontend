@@ -1,11 +1,120 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/inter/wght.css';
 
-@theme {
-  --font-sans: 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --color-risk-low: #15803d;
-  --color-risk-moderate: #eab308;
-  --color-risk-high: #ea580c;
-  --color-risk-extreme: #dc2626;
+/* El tema se fija en <html data-theme="light|dark"> (ver public/theme-init.js). */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/*
+ * Tokens semánticos. Los componentes usan bg-surface, text-fg, border-line…,
+ * nunca un gris concreto: así el modo oscuro solo cambia estas variables.
+ * Valores de referencia: medianas de pantallas de producto reales; los grises
+ * de texto cumplen contraste 4.5:1 en ambos temas.
+ */
+:root {
+  --ground: #f9fafb;
+  --surface: #ffffff;
+  --raised: #f4f5f7;
+  --active: #ebedf0;
+  --line: #e5e7eb;
+  --rule: #f0f1f3;
+  --control: #d1d5db;
+  --fg: #111111;
+  --muted: #5f6368;
+  --faint: #6b6b6b;
+  --primary: #1d1f20;
+  --on-primary: #ffffff;
+  --focus: #0369a1;
+
+  /* Niveles de riesgo: el único color fuerte de la app va en los datos. */
+  --risk-low: #15803d;
+  --risk-moderate: #ca8a04;
+  --risk-high: #c2410c;
+  --risk-extreme: #dc2626;
+  --risk-none: #94a3b8;
+
+  /* Avisos en pares pálidos: fondo tenue y texto oscuro del mismo tono. */
+  --positive-bg: #dcfae5;
+  --positive-ink: #14532d;
+  --negative-bg: #ffedea;
+  --negative-ink: #831c1e;
+  --warning-bg: #fffbeb;
+  --warning-ink: #92400e;
+  --warning-line: #fde68a;
+  --info-bg: #eef6fb;
+  --info-ink: #0c4a6e;
+  --info-line: #bae0f5;
+
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  /* Oscuro neutro (no azul marino): negro, grises y líneas tenues. */
+  --ground: #0b0b0c;
+  --surface: #141415;
+  --raised: #1c1c1e;
+  --active: #2a2a2d;
+  --line: #2a2a2d;
+  --rule: #202022;
+  --control: #45454a;
+  --fg: #f5f5f5;
+  --muted: #b4b4b4;
+  --faint: #949494;
+  --primary: #f5f5f5;
+  --on-primary: #111111;
+  --focus: #7cc4f0;
+
+  --risk-low: #3fc07a;
+  --risk-moderate: #e8b931;
+  --risk-high: #ff8a3d;
+  --risk-extreme: #ff5c5c;
+  --risk-none: #7c8696;
+
+  --positive-bg: #172a1d;
+  --positive-ink: #6fdc9d;
+  --negative-bg: #2c1a1c;
+  --negative-ink: #ff9b9b;
+  --warning-bg: #2a2310;
+  --warning-ink: #f5cf6b;
+  --warning-line: #5c4a14;
+  --info-bg: #10222d;
+  --info-ink: #8fd0f5;
+  --info-line: #1f4459;
+
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+
+  --color-ground: var(--ground);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-active: var(--active);
+  --color-line: var(--line);
+  --color-rule: var(--rule);
+  --color-control: var(--control);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+
+  --color-risk-low: var(--risk-low);
+  --color-risk-moderate: var(--risk-moderate);
+  --color-risk-high: var(--risk-high);
+  --color-risk-extreme: var(--risk-extreme);
+  --color-risk-none: var(--risk-none);
+
+  --color-positive-bg: var(--positive-bg);
+  --color-positive-ink: var(--positive-ink);
+  --color-negative-bg: var(--negative-bg);
+  --color-negative-ink: var(--negative-ink);
+  --color-warning-bg: var(--warning-bg);
+  --color-warning-ink: var(--warning-ink);
+  --color-warning-line: var(--warning-line);
+  --color-info-bg: var(--info-bg);
+  --color-info-ink: var(--info-ink);
+  --color-info-line: var(--info-line);
 }
 
 @layer base {
@@ -14,16 +123,20 @@
   html {
     scroll-padding-bottom: 6rem;
   }
-  @media (min-width: 40rem) {
+  @media (min-width: 64rem) {
     html {
       scroll-padding-bottom: 0;
     }
   }
   body {
-    @apply bg-slate-100 text-slate-900 antialiased;
+    @apply bg-ground font-sans text-[15px] leading-6 text-fg antialiased;
   }
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-sky-600;
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  .num {
+    font-variant-numeric: tabular-nums;
   }
 }
 
@@ -40,5 +153,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .map-pulse { animation: none; }
-  * { scroll-behavior: auto !important; }
+  * { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
 }

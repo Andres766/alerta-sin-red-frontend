@@ -3,6 +3,7 @@ import { Layout } from './components/Layout'
 import { AuthProvider } from './hooks/useAuth'
 import { FavoriteZoneProvider } from './hooks/useFavoriteZone'
 import { SnapshotProvider } from './hooks/useSnapshot'
+import { ThemeProvider } from './hooks/useTheme'
 import { AdminPage } from './pages/AdminPage'
 import { HomePage } from './pages/HomePage'
 import { HowItWorksPage } from './pages/HowItWorksPage'
@@ -12,6 +13,7 @@ import { ZonePage } from './pages/ZonePage'
 
 export default function App() {
   return (
+    <ThemeProvider>
     <BrowserRouter>
       <SnapshotProvider>
         <FavoriteZoneProvider>
@@ -30,5 +32,6 @@ export default function App() {
         </FavoriteZoneProvider>
       </SnapshotProvider>
     </BrowserRouter>
+    </ThemeProvider>
   )
 }

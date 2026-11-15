@@ -27,7 +27,7 @@ export function ZoneFilters({ query, onQuery, levels, onToggleLevel }: Props) {
           onChange={(e) => onQuery(e.target.value)}
           placeholder="Buscar por zona o municipio…"
           maxLength={60}
-          className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-2.5"
+          className="w-full rounded-lg border border-control bg-surface px-4 py-2.5"
         />
       </label>
       <div role="group" aria-label="Filtrar por nivel de riesgo" className="flex flex-wrap gap-1.5">
@@ -39,7 +39,7 @@ export function ZoneFilters({ query, onQuery, levels, onToggleLevel }: Props) {
               type="button"
               aria-pressed={active}
               onClick={() => onToggleLevel(o.value)}
-              className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition ${active ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'}`}
+              className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition ${active ? 'border-primary bg-primary text-on-primary' : 'border-control bg-surface text-fg hover:bg-raised'}`}
             >
               <span className={`size-2 rounded-full ${o.dot}`} aria-hidden />
               {o.label}
