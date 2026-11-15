@@ -52,8 +52,9 @@ export class ApiClient {
     return this.request<Blob>(path, { token, asBlob: true })
   }
 
-  post<T>(path: string, body?: unknown, token?: string | null): Promise<T> {
-    return this.request<T>(path, { method: 'POST', body, token })
+  /** `timeoutMs` permite esperar más en operaciones largas (p. ej. evaluar todas las zonas). */
+  post<T>(path: string, body?: unknown, token?: string | null, options: { timeoutMs?: number } = {}): Promise<T> {
+    return this.request<T>(path, { method: 'POST', body, token, timeoutMs: options.timeoutMs })
   }
 
   patch<T>(path: string, body: unknown, token?: string | null): Promise<T> {

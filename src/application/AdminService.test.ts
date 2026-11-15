@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest'
-import { ApiClient } from '../infrastructure/http/ApiClient'
-import { AdminService } from './AdminService'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { ApiClient, NetworkError } from '../infrastructure/http/ApiClient'
+import { AdminService, EVALUATION_TIMEOUT_MS } from './AdminService'
 
 function recordingApi() {
   const calls: { url: string; method: string; auth: string | null; body: unknown }[] = []
@@ -74,5 +74,41 @@ describe('herramientas de operación', () => {
     const blob = await new AdminService(api).assessmentsCsv('tok', 30)
     expect(await blob.text()).toBe('fecha_utc,zona\n')
     expect(calls).toEqual(['/api/v1/admin/assessments.csv?days=30 Bearer tok'])
+  })
+})
+
+describe('evaluación manual', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  /** fetch que nunca responde: solo termina cuando el cliente aborta por tiempo. */
+  const hangingFetch: typeof fetch = (_input, init) =>
+    new Promise((_resolve, reject) => {
+      init?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')))
+    })
+
+  it('espera más que el límite general antes de rendirse', async () => {
+    vi.useFakeTimers()
+    const service = new AdminService(new ApiClient('/api/v1', hangingFetch))
+    let settled = false
+    const result = service.evaluate('tok').finally(() => {
+      settled = true
+    })
+    result.catch(() => undefined)
+
+    await vi.advanceTimersByTimeAsync(60_000) // una evaluación lenta pero normal
+    expect(settled).toBe(false)
+
+    await vi.advanceTimersByTimeAsync(EVALUATION_TIMEOUT_MS)
+    await expect(result).rejects.toBeInstanceOf(NetworkError)
+  })
+
+  it('las demás operaciones conservan el límite corto', async () => {
+    vi.useFakeTimers()
+    const result = new AdminService(new ApiClient('/api/v1', hangingFetch)).stats('tok')
+    result.catch(() => undefined)
+    await vi.advanceTimersByTimeAsync(8_001)
+    await expect(result).rejects.toBeInstanceOf(NetworkError)
   })
 })

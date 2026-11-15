@@ -13,6 +13,14 @@ import type {
 } from '../domain/types'
 import type { ApiClient } from '../infrastructure/http/ApiClient'
 
+/**
+ * Evaluar todas las zonas consulta Open-Meteo zona por zona y puede tardar más de
+ * un minuto (en Render, además, el servicio puede estar despertando). Con el
+ * límite general de 8 s el panel mostraba "Sin conexión" aunque la evaluación
+ * terminara bien en el servidor.
+ */
+export const EVALUATION_TIMEOUT_MS = 150_000
+
 /** Operaciones del panel; todas (salvo login) requieren el token del operador. */
 export class AdminService {
   constructor(private readonly api: ApiClient) {}
@@ -35,7 +43,7 @@ export class AdminService {
   }
 
   evaluate(token: string): Promise<EvaluationResult> {
-    return this.api.post<EvaluationResult>('/admin/evaluations', undefined, token)
+    return this.api.post<EvaluationResult>('/admin/evaluations', undefined, token, { timeoutMs: EVALUATION_TIMEOUT_MS })
   }
 
   alerts(token: string): Promise<AlertRecord[]> {
