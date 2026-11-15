@@ -1,38 +1,41 @@
-import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react'
-import { IconRefresh, IconShield, IconSparkles, IconUsers } from '../components/icons'
+import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { ChangePasswordForm } from '../components/admin/ChangePasswordForm'
-import { AuditLogPanel, ExportCsvButton, SmsTestPanel } from '../components/admin/OperationsTools'
+import { AuditLogPanel, ExportCsvPanel, SmsTestPanel } from '../components/admin/OperationsTools'
+import { Card, Field, field, Message, primaryButton, secondaryButton } from '../components/admin/ui'
 import { ZonesPanel } from '../components/admin/ZonesPanel'
+import { IconRefresh, IconShield } from '../components/icons'
 import { RelativeTime } from '../components/RelativeTime'
 import { RiskBadge } from '../components/RiskBadge'
 import { LEVEL_ORDER, RISK_LEVELS } from '../domain/riskLevel'
 import { formatDateTime } from '../domain/time'
 import type { AlertRecord, DashboardStats, EvaluationResult, Role, UserAccount } from '../domain/types'
 import { useAuth } from '../hooks/useAuth'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useSnapshot } from '../hooks/useSnapshot'
+import { levelLabel } from '../i18n/domain'
+import type { MessageKey } from '../i18n/es'
+import { useI18n } from '../i18n/I18nProvider'
 import { ApiError } from '../infrastructure/http/ApiClient'
 import { adminService } from '../services'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
-import { levelLabel } from '../i18n/domain'
-import { useI18n } from '../i18n/I18nProvider'
 
-const ROLE_LABEL: Record<Role, string> = { ADMIN: 'Administrador', OPERATOR: 'Operador' }
+const roleKey = (role: Role): MessageKey => `admin.role.${role}`
 
 /** Un 401 significa token vencido o cuenta desactivada: se cierra la sesión. */
 function useApiErrorHandler() {
   const { logout } = useAuth()
+  const { t } = useI18n()
   return useCallback(
     (err: unknown): string => {
-      if (err instanceof ApiError && err.status === 401) {
-        logout('Su sesión terminó (expiró o la cuenta fue desactivada). Ingrese de nuevo.')
-      }
-      return err instanceof Error ? err.message : 'Error inesperado'
+      if (err instanceof ApiError && err.status === 401) logout(t('admin.sessionEnded'))
+      return err instanceof Error ? err.message : t('admin.unexpected')
     },
-    [logout],
+    [logout, t],
   )
 }
 
 function LoginForm() {
+  const { t } = useI18n()
   const { login, notice } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -46,11 +49,7 @@ function LoginForm() {
     try {
       await login(email, password)
     } catch (err) {
-      setError(
-        err instanceof ApiError && err.status === 429
-          ? 'Demasiados intentos. Espere unos minutos.'
-          : 'Credenciales inválidas.',
-      )
+      setError(err instanceof ApiError && err.status === 429 ? t('admin.tooMany') : t('admin.badCredentials'))
     } finally {
       setPassword('')
       setBusy(false)
@@ -58,76 +57,97 @@ function LoginForm() {
   }
 
   return (
-    <form onSubmit={submit} className="mx-auto max-w-sm space-y-4 rounded-lg border border-line bg-surface p-6">
-      <span className="inline-grid size-12 place-items-center rounded-lg bg-primary text-on-primary">
-        <IconShield className="size-6" />
-      </span>
-      <div>
-        <h1 className="text-xl font-bold">Acceso de operadores</h1>
-        <p className="text-sm text-muted">Solo personal de gestión del riesgo municipal.</p>
-      </div>
-      {notice && <p className="rounded-md bg-warning-bg p-3 text-sm text-warning-ink">{notice}</p>}
-      <label className="block">
-        <span className="text-sm font-semibold">Correo</span>
-        <input
-          type="email" required autoComplete="username" placeholder="correo@entidad.gov.co"
-          value={email} onChange={(e) => setEmail(e.target.value)}
-          className="mt-1 w-full rounded-md border border-control px-3 py-3"
-        />
-      </label>
-      <label className="block">
-        <span className="text-sm font-semibold">Contraseña</span>
-        <input
-          type="password" required minLength={8} autoComplete="current-password"
-          value={password} onChange={(e) => setPassword(e.target.value)}
-          className="mt-1 w-full rounded-md border border-control px-3 py-3"
-        />
-      </label>
-      {error && <p role="alert" className="text-sm text-negative-ink">{error}</p>}
-      <button disabled={busy} className="w-full rounded-lg bg-primary py-3 font-semibold text-on-primary transition hover:opacity-90 disabled:opacity-60">
-        {busy ? 'Verificando…' : 'Ingresar'}
-      </button>
-    </form>
+    <div className="grid min-h-[60vh] place-items-center">
+      <form onSubmit={submit} className="w-full max-w-sm space-y-5 rounded-lg border border-line bg-surface p-6">
+        <div>
+          <span className="inline-grid size-10 place-items-center rounded-md border border-line bg-raised text-fg">
+            <IconShield className="size-5" />
+          </span>
+          <h1 className="mt-3 text-2xl font-semibold tracking-tight">{t('admin.loginTitle')}</h1>
+          <p className="mt-1 text-sm text-muted">{t('admin.loginLead')}</p>
+        </div>
+        {notice && <p className="rounded-md border border-warning-line bg-warning-bg p-3 text-sm text-warning-ink">{notice}</p>}
+        <Field label={t('admin.email')}>
+          <input type="email" required autoComplete="username" placeholder="correo@entidad.gov.co"
+            value={email} onChange={(e) => setEmail(e.target.value)} className={field} />
+        </Field>
+        <Field label={t('admin.password')}>
+          <input type="password" required minLength={8} autoComplete="current-password"
+            value={password} onChange={(e) => setPassword(e.target.value)} className={field} />
+        </Field>
+        {error && <p role="alert" className="text-sm text-negative-ink">{error}</p>}
+        <button disabled={busy} className={`${primaryButton} w-full py-2.5`}>
+          {busy ? t('admin.verifying') : t('admin.signIn')}
+        </button>
+      </form>
+    </div>
   )
 }
 
-function StatTile({ label, value, hint }: { label: string; value: ReactNode; hint?: string }) {
+/** Franja de indicadores: una sola tarjeta dividida, sin íconos decorativos. */
+function KpiStrip({ stats }: { stats: DashboardStats }) {
+  const { t, locale } = useI18n()
+  const cells: { label: string; value: ReactNode; hint?: string }[] = [
+    { label: t('admin.kpi.zones'), value: stats.zones },
+    { label: t('admin.kpi.subscribers'), value: stats.active_subscribers },
+    {
+      label: t('admin.kpi.sms'),
+      value: stats.sms_sent_24h,
+      hint: stats.sms_failed_24h ? t('admin.kpi.failed', { count: stats.sms_failed_24h }) : t('admin.kpi.noFailures'),
+    },
+    {
+      label: t('admin.kpi.lastEval'),
+      value: stats.last_evaluation_at ? <RelativeTime iso={stats.last_evaluation_at} withoutPrefix /> : '—',
+      hint: stats.last_evaluation_at ? formatDateTime(stats.last_evaluation_at, locale) : t('admin.kpi.never'),
+    },
+  ]
   return (
-    <div className="rounded-lg border border-line bg-surface p-4">
-      <p className="text-sm text-muted">{label}</p>
-      <p className="mt-1 text-3xl font-bold tabular-nums">{value}</p>
-      {hint && <p className="mt-0.5 text-xs text-muted">{hint}</p>}
-    </div>
+    <dl className="grid grid-cols-2 overflow-hidden rounded-lg border border-line bg-surface lg:grid-cols-4">
+      {cells.map((c, i) => (
+        <div
+          key={c.label}
+          className={`border-line p-5 ${i % 2 === 1 ? 'border-l' : ''} ${i >= 2 ? 'border-t lg:border-t-0' : ''} ${i === 2 ? 'lg:border-l' : ''}`}
+        >
+          <dt className="text-sm text-muted">{c.label}</dt>
+          <dd className="num mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">{c.value}</dd>
+          {c.hint && <dd className="mt-0.5 text-xs text-muted">{c.hint}</dd>}
+        </div>
+      ))}
+    </dl>
   )
 }
 
 function LevelDistribution({ stats }: { stats: DashboardStats }) {
   const translator = useI18n()
+  const { t } = translator
   const total = Math.max(stats.zones, 1)
   return (
-    <div className="rounded-lg border border-line bg-surface p-4">
-      <p className="text-sm text-muted">Zonas por nivel de riesgo</p>
-      <div className="mt-3 flex h-3 overflow-hidden rounded-full bg-raised">
+    <Card title={t('admin.byLevel')}>
+      <div className="flex h-2.5 overflow-hidden rounded-full bg-active">
         {[...LEVEL_ORDER].reverse().map((lvl) => (
           <div key={lvl} className={RISK_LEVELS[lvl].stripe} style={{ width: `${(stats.zones_by_level[lvl] / total) * 100}%` }} />
         ))}
       </div>
-      <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+      <ul className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
         {[...LEVEL_ORDER].reverse().map((lvl) => (
-          <li key={lvl} className="flex items-center gap-1.5">
-            <span className={`size-2.5 rounded-full ${RISK_LEVELS[lvl].stripe}`} />
-            {levelLabel(translator, lvl)}: <strong>{stats.zones_by_level[lvl]}</strong>
+          <li key={lvl} className="flex items-center justify-between gap-2">
+            <span className="flex items-center gap-1.5 text-muted">
+              <span className={`size-2 rounded-full ${RISK_LEVELS[lvl].stripe}`} />
+              {levelLabel(translator, lvl)}
+            </span>
+            <strong className="num font-semibold">{stats.zones_by_level[lvl]}</strong>
           </li>
         ))}
-        {stats.zones_by_level.SIN_EVALUAR > 0 && (
-          <li className="text-muted">Sin evaluar: {stats.zones_by_level.SIN_EVALUAR}</li>
-        )}
       </ul>
-    </div>
+      {stats.zones_by_level.SIN_EVALUAR > 0 && (
+        <p className="mt-3 text-xs text-muted">{t('admin.unassessed', { count: stats.zones_by_level.SIN_EVALUAR })}</p>
+      )}
+    </Card>
   )
 }
 
 function UsersPanel({ token, me }: { token: string; me: UserAccount }) {
+  const { t, locale } = useI18n()
   const handleError = useApiErrorHandler()
   const [users, setUsers] = useState<UserAccount[]>([])
   const [email, setEmail] = useState('')
@@ -151,13 +171,13 @@ function UsersPanel({ token, me }: { token: string; me: UserAccount }) {
   const create = async (e: FormEvent) => {
     e.preventDefault()
     if (password.length < 12) {
-      setMessage({ ok: false, text: 'La contraseña debe tener al menos 12 caracteres.' })
+      setMessage({ ok: false, text: t('admin.passwordTooShort', { min: 12 }) })
       return
     }
     setBusy(true)
     try {
       const created = await adminService.createUser(token, { email, password, role })
-      setMessage({ ok: true, text: `Cuenta creada: ${created.email}` })
+      setMessage({ ok: true, text: t('admin.accountCreated', { email: created.email }) })
       setEmail('')
       setPassword('')
       await load()
@@ -178,72 +198,211 @@ function UsersPanel({ token, me }: { token: string; me: UserAccount }) {
   }
 
   return (
-    <section className="rounded-lg border border-line bg-surface p-5">
-      <h2 className="flex items-center gap-2 font-bold">
-        <IconUsers className="size-5 text-muted" /> Cuentas de operadores
-      </h2>
-      <ul className="mt-3 divide-y divide-rule">
-        {users.map((u) => (
-          <li key={u.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
-            <span className="min-w-0">
-              <span className={`block truncate font-medium ${u.active ? '' : 'text-faint line-through'}`}>
-                {u.email} {u.id === me.id && <span className="text-xs font-normal text-muted">(usted)</span>}
+    <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <Card title={t('admin.accountsTitle')} flush>
+        <ul className="divide-y divide-rule">
+          {users.map((u) => (
+            <li key={u.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3">
+              <span className="min-w-0">
+                <span className={`block truncate font-medium ${u.active ? '' : 'text-faint line-through'}`}>
+                  {u.email} {u.id === me.id && <span className="text-xs font-normal text-muted">{t('admin.you')}</span>}
+                </span>
+                <span className="text-xs text-muted">
+                  {t(roleKey(u.role))} · {t('admin.created', { date: formatDateTime(u.created_at, locale) })}
+                </span>
               </span>
-              <span className="text-xs text-muted">
-                {ROLE_LABEL[u.role]} · creada {formatDateTime(u.created_at)}
-              </span>
-            </span>
-            {u.id !== me.id && (
-              <button
-                onClick={() => void toggle(u)}
-                className={`rounded-md border px-3 py-1.5 text-sm font-semibold transition ${u.active ? 'border-negative-ink/30 text-negative-ink hover:bg-negative-bg' : 'border-positive-ink/30 text-positive-ink hover:bg-positive-bg'}`}
-              >
-                {u.active ? 'Desactivar' : 'Activar'}
-              </button>
-            )}
-          </li>
-        ))}
-      </ul>
+              {u.id !== me.id && (
+                <button
+                  onClick={() => void toggle(u)}
+                  className={`rounded-md border border-control px-3 py-1.5 text-sm font-medium transition ${u.active ? 'text-negative-ink hover:bg-negative-bg' : 'text-positive-ink hover:bg-positive-bg'}`}
+                >
+                  {u.active ? t('admin.deactivate') : t('admin.activate')}
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      </Card>
 
-      <form onSubmit={create} className="mt-4 grid gap-2 rounded-md bg-raised p-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto_auto]">
-        <input
-          type="email" required placeholder="correo@entidad.gov.co" aria-label="Correo de la nueva cuenta"
-          value={email} onChange={(e) => setEmail(e.target.value)}
-          className="rounded-md border border-control px-3 py-2.5"
-        />
-        <input
-          type="password" required minLength={12} autoComplete="new-password"
-          placeholder="Contraseña (mín. 12)" aria-label="Contraseña de la nueva cuenta"
-          value={password} onChange={(e) => setPassword(e.target.value)}
-          className="rounded-md border border-control px-3 py-2.5"
-        />
-        <select
-          aria-label="Rol" value={role} onChange={(e) => setRole(e.target.value as Role)}
-          className="rounded-md border border-control bg-surface px-3 py-2.5"
-        >
-          <option value="OPERATOR">Operador</option>
-          <option value="ADMIN">Administrador</option>
-        </select>
-        <button disabled={busy} className="whitespace-nowrap rounded-md bg-primary px-4 py-2.5 font-semibold text-on-primary disabled:opacity-60">
-          Crear cuenta
-        </button>
-      </form>
-      {message && (
-        <p role="status" className={`mt-2 text-sm ${message.ok ? 'text-positive-ink' : 'text-negative-ink'}`}>{message.text}</p>
-      )}
-    </section>
+      <Card title={t('admin.newAccount')}>
+        <form onSubmit={create} className="grid gap-4">
+          <Field label={t('admin.newEmailLabel')}>
+            <input type="email" required placeholder="correo@entidad.gov.co"
+              value={email} onChange={(e) => setEmail(e.target.value)} className={field} />
+          </Field>
+          <Field label={t('admin.newPasswordLabel')}>
+            <input type="password" required minLength={12} autoComplete="new-password" placeholder={t('admin.newPasswordPlaceholder')}
+              value={password} onChange={(e) => setPassword(e.target.value)} className={field} />
+          </Field>
+          <Field label={t('admin.roleLabel')}>
+            <select value={role} onChange={(e) => setRole(e.target.value as Role)} className={field}>
+              <option value="OPERATOR">{t('admin.role.OPERATOR')}</option>
+              <option value="ADMIN">{t('admin.role.ADMIN')}</option>
+            </select>
+          </Field>
+          <button disabled={busy} className={`${primaryButton} justify-self-start`}>{t('admin.createAccount')}</button>
+          {message && <Message ok={message.ok}>{message.text}</Message>}
+        </form>
+      </Card>
+    </div>
+  )
+}
+
+function Overview({ token, stats, alerts, onEvaluated }: {
+  token: string
+  stats: DashboardStats | null
+  alerts: AlertRecord[]
+  onEvaluated: () => Promise<void>
+}) {
+  const { t, locale } = useI18n()
+  const handleError = useApiErrorHandler()
+  const { data } = useSnapshot()
+  const [result, setResult] = useState<EvaluationResult | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const evaluate = async () => {
+    setBusy(true)
+    setError(null)
+    try {
+      setResult(await adminService.evaluate(token))
+      await onEvaluated()
+    } catch (err) {
+      setError(handleError(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const zoneName = (id: string) => data?.snapshot.items.find((i) => i.zone.id === id)?.zone.name ?? t('admin.zoneFallback')
+  const failures = result ? Object.entries(result.failures) : []
+
+  return (
+    <div className="space-y-6">
+      {stats ? <KpiStrip stats={stats} /> : <div className="h-28 animate-pulse rounded-lg border border-line bg-surface" aria-hidden />}
+
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <Card title={t('admin.smsTitle')} flush>
+          {alerts.length === 0 ? (
+            <p className="px-5 py-4 text-sm text-muted">{t('admin.smsEmpty')}</p>
+          ) : (
+            <ul className="divide-y divide-rule text-sm">
+              {alerts.map((a) => (
+                <li key={a.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3">
+                  <span className="min-w-0">
+                    <span className="font-medium">{zoneName(a.zone_id)}</span>
+                    <span className="block text-xs text-muted">
+                      {formatDateTime(a.created_at, locale)} · {a.channel} ·{' '}
+                      {a.status === 'SENT' ? t('admin.smsSent') : t('admin.smsFailed', { error: a.error ?? '' })}
+                    </span>
+                  </span>
+                  {a.kind === 'ALL_CLEAR' ? (
+                    <span className="rounded-full bg-positive-bg px-2.5 py-0.5 text-xs font-semibold text-positive-ink">
+                      {t('admin.allClear')}
+                    </span>
+                  ) : (
+                    <RiskBadge level={a.level} />
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+
+        <div className="space-y-6">
+          <Card title={t('admin.evalTitle')} lead={t('admin.evalBody')}>
+            <button onClick={() => void evaluate()} disabled={busy} className={primaryButton}>
+              <IconRefresh className={`size-4 ${busy ? 'animate-spin' : ''}`} />
+              {busy ? t('admin.evalRunning') : t('admin.evalRun')}
+            </button>
+            {busy && <p className="mt-2 text-xs text-muted">{t('admin.evalHint')}</p>}
+            {error && <p role="alert" className="mt-3 text-sm text-negative-ink">{error}</p>}
+            {result && (
+              <p role="status" className="mt-3 text-sm">
+                {t('admin.evalResult', { count: result.evaluated })}
+                {failures.length > 0 &&
+                  ` · ${t('admin.evalFailures', { list: failures.map(([z, r]) => `${z} (${r})`).join(', ') })}`}
+              </p>
+            )}
+          </Card>
+          {stats && <LevelDistribution stats={stats} />}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+type TabId = 'resumen' | 'zonas' | 'cuentas' | 'herramientas' | 'bitacora' | 'cuenta'
+
+const TABS: { id: TabId; label: MessageKey; adminOnly: boolean }[] = [
+  { id: 'resumen', label: 'admin.tab.summary', adminOnly: false },
+  { id: 'zonas', label: 'admin.tab.zones', adminOnly: true },
+  { id: 'cuentas', label: 'admin.tab.accounts', adminOnly: true },
+  { id: 'herramientas', label: 'admin.tab.tools', adminOnly: false },
+  { id: 'bitacora', label: 'admin.tab.audit', adminOnly: true },
+  { id: 'cuenta', label: 'admin.tab.account', adminOnly: false },
+]
+
+/**
+ * Pestañas accesibles (patrón WAI-ARIA): flechas para moverse, Inicio/Fin para
+ * los extremos. La pestaña activa queda en la URL (?seccion=) y sobrevive a recargar.
+ */
+function Tabs({ tabs, active, onSelect }: { tabs: typeof TABS; active: TabId; onSelect: (id: TabId) => void }) {
+  const { t } = useI18n()
+  const refs = useRef<Partial<Record<TabId, HTMLButtonElement | null>>>({})
+
+  const onKeyDown = (e: KeyboardEvent) => {
+    const index = tabs.findIndex((tab) => tab.id === active)
+    const target =
+      e.key === 'ArrowRight' ? tabs[(index + 1) % tabs.length]
+        : e.key === 'ArrowLeft' ? tabs[(index - 1 + tabs.length) % tabs.length]
+          : e.key === 'Home' ? tabs[0]
+            : e.key === 'End' ? tabs[tabs.length - 1]
+              : undefined
+    if (!target) return
+    e.preventDefault()
+    onSelect(target.id)
+    refs.current[target.id]?.focus()
+  }
+
+  return (
+    <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+      <div role="tablist" aria-label={t('admin.sections')} className="flex min-w-max gap-1 border-b border-line">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            ref={(el) => { refs.current[tab.id] = el }}
+            role="tab"
+            id={`tab-${tab.id}`}
+            aria-selected={active === tab.id}
+            aria-controls={`panel-${tab.id}`}
+            tabIndex={active === tab.id ? 0 : -1}
+            onClick={() => onSelect(tab.id)}
+            onKeyDown={onKeyDown}
+            className={`-mb-px border-b-2 px-3 py-2.5 text-sm transition ${active === tab.id ? 'border-fg font-medium text-fg' : 'border-transparent text-muted hover:text-fg'}`}
+          >
+            {t(tab.label)}
+          </button>
+        ))}
+      </div>
+    </div>
   )
 }
 
 function Dashboard({ token, me }: { token: string; me: UserAccount }) {
+  const { t } = useI18n()
   const { logout } = useAuth()
   const handleError = useApiErrorHandler()
-  const { data, refresh } = useSnapshot()
-  const [result, setResult] = useState<EvaluationResult | null>(null)
+  const { refresh } = useSnapshot()
+  const [params, setParams] = useSearchParams()
   const [alerts, setAlerts] = useState<AlertRecord[]>([])
   const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const tabs = TABS.filter((tab) => !tab.adminOnly || me.role === 'ADMIN')
+  const requested = params.get('seccion') as TabId | null
+  const active = tabs.find((tab) => tab.id === requested)?.id ?? 'resumen'
+  const select = (id: TabId) => setParams(id === 'resumen' ? {} : { seccion: id }, { replace: true })
 
   const load = useCallback(async () => {
     try {
@@ -259,120 +418,43 @@ function Dashboard({ token, me }: { token: string; me: UserAccount }) {
     void load()
   }, [load])
 
-  const evaluate = async () => {
-    setBusy(true)
-    setError(null)
-    try {
-      setResult(await adminService.evaluate(token))
-      await Promise.all([refresh(), load()])
-    } catch (err) {
-      setError(handleError(err))
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const zoneName = (id: string) => data?.snapshot.items.find((i) => i.zone.id === id)?.zone.name ?? 'Zona'
-
   return (
-    <div className="space-y-5">
-      <header className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-linear-to-br from-slate-800 to-slate-900 p-5 text-white">
-        <div>
-          <p className="text-sm text-slate-300">Panel del operador</p>
-          <h1 className="text-xl font-bold">{me.email}</h1>
-          <p className="text-xs text-faint">{ROLE_LABEL[me.role]}</p>
+    <div className="space-y-6">
+      <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-semibold tracking-tight">{t('admin.title')}</h1>
+          <p className="mt-1 truncate text-sm text-muted">
+            {me.email} · {t(roleKey(me.role))}
+          </p>
         </div>
-        <button onClick={() => logout()} className="rounded-md bg-white/10 px-3 py-2 text-sm font-semibold hover:bg-white/20">
-          Cerrar sesión
-        </button>
+        <button onClick={() => logout()} className={secondaryButton}>{t('admin.signOut')}</button>
       </header>
 
-      {stats && (
-        <>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <StatTile label="Zonas" value={stats.zones} />
-            <StatTile label="Suscriptores SMS" value={stats.active_subscribers} />
-            <StatTile label="SMS enviados (24 h)" value={stats.sms_sent_24h} hint={stats.sms_failed_24h ? `${stats.sms_failed_24h} fallidos` : 'sin fallos'} />
-            <StatTile
-              label="Última evaluación"
-              value={stats.last_evaluation_at ? <RelativeTime iso={stats.last_evaluation_at} withoutPrefix /> : '—'}
-              hint={stats.last_evaluation_at ? formatDateTime(stats.last_evaluation_at) : 'nunca'}
-            />
+      <Tabs tabs={tabs} active={active} onSelect={select} />
+      {error && <p role="alert" className="text-sm text-negative-ink">{error}</p>}
+
+      <div role="tabpanel" id={`panel-${active}`} aria-labelledby={`tab-${active}`} tabIndex={0} className="outline-none">
+        {active === 'resumen' && (
+          <Overview token={token} stats={stats} alerts={alerts} onEvaluated={async () => { await Promise.all([refresh(), load()]) }} />
+        )}
+        {active === 'zonas' && <ZonesPanel token={token} />}
+        {active === 'cuentas' && <UsersPanel token={token} me={me} />}
+        {active === 'herramientas' && (
+          <div className="grid items-start gap-6 lg:grid-cols-2">
+            <ExportCsvPanel token={token} />
+            {me.role === 'ADMIN' && <SmsTestPanel token={token} />}
           </div>
-          <LevelDistribution stats={stats} />
-        </>
-      )}
-
-      <section className="rounded-lg border border-line bg-surface p-5">
-        <h2 className="flex items-center gap-2 font-bold">
-          <IconSparkles className="size-5 text-muted" /> Evaluación con el modelo de IA
-        </h2>
-        <p className="mt-1 text-sm text-muted">
-          Descarga lluvia, humedad del suelo y caudal de Open-Meteo para cada zona, ejecuta el
-          clasificador y envía SMS a los suscriptores si el riesgo es alto. Se ejecuta también
-          automáticamente cada hora.
-        </p>
-        <button
-          onClick={() => void evaluate()}
-          disabled={busy}
-          className="mt-4 flex items-center gap-2 rounded-lg bg-primary px-4 py-3 font-semibold text-on-primary transition hover:opacity-90 disabled:opacity-60"
-        >
-          <IconRefresh className={`size-5 ${busy ? 'animate-spin' : ''}`} />
-          {busy ? 'Evaluando zonas…' : 'Ejecutar evaluación ahora'}
-        </button>
-        {error && <p role="alert" className="mt-3 text-sm text-negative-ink">{error}</p>}
-        {result && (
-          <p className="mt-3 text-sm text-fg">
-            {result.evaluated} zona(s) evaluada(s)
-            {Object.keys(result.failures).length > 0 &&
-              ` · fallos: ${Object.entries(result.failures).map(([z, r]) => `${z} (${r})`).join(', ')}`}
-          </p>
         )}
-      </section>
-
-      <section className="rounded-lg border border-line bg-surface p-5">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-bold">Últimos SMS</h2>
-          <ExportCsvButton token={token} />
-        </div>
-        {alerts.length === 0 ? (
-          <p className="mt-2 text-sm text-muted">Todavía no se han enviado alertas.</p>
-        ) : (
-          <ul className="mt-3 divide-y divide-rule text-sm">
-            {alerts.map((a) => (
-              <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
-                <span className="min-w-0">
-                  <span className="font-medium">{zoneName(a.zone_id)}</span>
-                  <span className="block text-xs text-muted">
-                    {formatDateTime(a.created_at)} · {a.channel} ·{' '}
-                    {a.status === 'SENT' ? 'enviado' : `falló (${a.error})`}
-                  </span>
-                </span>
-                {a.kind === 'ALL_CLEAR' ? (
-                  <span className="rounded-full bg-positive-bg px-2.5 py-0.5 text-xs font-semibold text-positive-ink">
-                    Fin de alerta
-                  </span>
-                ) : (
-                  <RiskBadge level={a.level} />
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      {me.role === 'ADMIN' && <UsersPanel token={token} me={me} />}
-      {me.role === 'ADMIN' && <ZonesPanel token={token} />}
-      {me.role === 'ADMIN' && <SmsTestPanel token={token} />}
-      {me.role === 'ADMIN' && <AuditLogPanel token={token} />}
-
-      <ChangePasswordForm token={token} />
+        {active === 'bitacora' && <AuditLogPanel token={token} />}
+        {active === 'cuenta' && <ChangePasswordForm token={token} />}
+      </div>
     </div>
   )
 }
 
 export function AdminPage() {
+  const { t } = useI18n()
   const { session } = useAuth()
-  useDocumentTitle(session ? 'Panel del operador' : 'Acceso de operadores')
+  useDocumentTitle(session ? t('admin.docPanel') : t('admin.docLogin'))
   return session ? <Dashboard token={session.token} me={session.user} /> : <LoginForm />
 }
