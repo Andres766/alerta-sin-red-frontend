@@ -1,17 +1,17 @@
-import { useState, type FormEvent } from 'react'
+import { useState, type FormEvent, type ReactNode } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { IconBell, IconPhone, IconWifiOff } from '../components/icons'
+import { IconBell, IconPhone, IconShield, IconWifiOff } from '../components/icons'
 import { formatColombianMobile, isValidColombianMobile } from '../domain/phone'
 import { formatDateTime } from '../domain/time'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useOutbox } from '../hooks/useOutbox'
 import { useSnapshot } from '../hooks/useSnapshot'
+import { useI18n } from '../i18n/I18nProvider'
 import { ApiError } from '../infrastructure/http/ApiClient'
 import type { StoredSubscription } from '../infrastructure/storage/database'
 import { subscriptionService } from '../services'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 type Feedback = { kind: 'ok' | 'queued' | 'error'; text: string } | null
-
 
 const FEEDBACK_STYLE = {
   ok: 'bg-positive-bg text-positive-ink border-positive-ink/30',
@@ -19,7 +19,22 @@ const FEEDBACK_STYLE = {
   error: 'bg-negative-bg text-negative-ink border-negative-ink/30',
 }
 
+const field = 'mt-1.5 w-full rounded-md border border-control bg-surface px-3 py-2.5'
+
+function Fact({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
+  return (
+    <li className="flex gap-3 px-4 py-3.5">
+      <span className="mt-0.5 shrink-0 text-muted">{icon}</span>
+      <span className="text-sm">
+        <span className="block font-medium">{title}</span>
+        <span className="text-muted">{children}</span>
+      </span>
+    </li>
+  )
+}
+
 export function SubscribePage() {
+  const { t, locale } = useI18n()
   const { data } = useSnapshot()
   const [params] = useSearchParams()
   const { pending, mine, reload, lastMessage } = useOutbox()
@@ -29,16 +44,16 @@ export function SubscribePage() {
   const [sending, setSending] = useState(false)
   const [feedback, setFeedback] = useState<Feedback>(null)
   const [cancelling, setCancelling] = useState<string | null>(null)
-  useDocumentTitle('Alertas por SMS')
+  useDocumentTitle(t('sub.docTitle'))
 
   const zones = data?.snapshot.items.map((i) => i.zone) ?? []
-  const zoneName = (id: string) => zones.find((z) => z.id === id)?.name ?? 'Zona'
+  const zoneName = (id: string) => zones.find((z) => z.id === id)?.name ?? t('sub.zoneFallback')
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
     // Validación en el cliente = mejor experiencia. La validación que protege es la del servidor.
     if (!isValidColombianMobile(phone)) {
-      setFeedback({ kind: 'error', text: 'Escriba un celular colombiano válido, p. ej. 300 123 4567.' })
+      setFeedback({ kind: 'error', text: t('sub.invalidPhone') })
       return
     }
     setSending(true)
@@ -54,18 +69,15 @@ export function SubscribePage() {
           kind: 'ok',
           text: outcome.response.cancel_token
             ? `${outcome.response.message} (${outcome.response.phone_masked})`
-            : `Ese número ya estaba suscrito a esta zona (${outcome.response.phone_masked}).`,
+            : t('sub.already', { phone: outcome.response.phone_masked }),
         })
       } else {
-        setFeedback({
-          kind: 'queued',
-          text: 'Está sin conexión. Guardamos su solicitud y se enviará sola cuando vuelva la señal.',
-        })
+        setFeedback({ kind: 'queued', text: t('sub.queued') })
       }
       setPhone('')
       await reload()
     } catch (err) {
-      setFeedback({ kind: 'error', text: err instanceof ApiError ? err.message : 'No se pudo registrar.' })
+      setFeedback({ kind: 'error', text: err instanceof ApiError ? err.message : t('sub.failed') })
     } finally {
       setSending(false)
     }
@@ -73,18 +85,18 @@ export function SubscribePage() {
 
   const cancel = async (subscription: StoredSubscription) => {
     const name = zoneName(subscription.zoneId)
-    if (!window.confirm(`¿Dejar de recibir alertas SMS de "${name}" en ${subscription.phoneMasked}?`)) return
+    if (!window.confirm(t('sub.confirmCancel', { zone: name, phone: subscription.phoneMasked }))) return
     setCancelling(subscription.id)
     try {
       const outcome = await subscriptionService.cancel(subscription)
       setFeedback(
         outcome === 'cancelled'
-          ? { kind: 'ok', text: `Listo: ya no recibirá alertas de ${name}.` }
-          : { kind: 'queued', text: 'Sin conexión: la baja se enviará cuando vuelva la señal.' },
+          ? { kind: 'ok', text: t('sub.cancelled', { zone: name }) }
+          : { kind: 'queued', text: t('sub.cancelQueued') },
       )
       await reload()
     } catch (err) {
-      setFeedback({ kind: 'error', text: err instanceof Error ? err.message : 'No se pudo dar de baja.' })
+      setFeedback({ kind: 'error', text: err instanceof Error ? err.message : t('sub.cancelFailed') })
     } finally {
       setCancelling(null)
     }
@@ -92,138 +104,146 @@ export function SubscribePage() {
 
   return (
     <div className="space-y-6">
-      <header className="rounded-lg bg-linear-to-br from-slate-800 to-slate-900 p-5 text-white">
-        <span className="inline-grid size-11 place-items-center rounded-lg bg-white/10">
-          <IconBell className="size-6" />
-        </span>
-        <h1 className="mt-3 text-2xl font-bold">Alertas por SMS</h1>
-        <p className="mt-1 text-slate-300">
-          Si el riesgo de su zona sube a <strong className="text-white">alto</strong> o{' '}
-          <strong className="text-white">muy alto</strong>, le enviamos un mensaje de texto. El SMS
-          no necesita datos ni internet: llega con solo tener señal de celular.
-        </p>
+      <header className="max-w-2xl">
+        <h1 className="text-2xl font-semibold tracking-tight">{t('sub.title')}</h1>
+        <p className="mt-1.5 text-muted">{t('sub.lead')}</p>
       </header>
 
-      <form onSubmit={submit} noValidate className="space-y-4 rounded-lg border border-line bg-surface p-5">
-        <label className="block">
-          <span className="text-sm font-semibold">Zona</span>
-          <select
-            required
-            value={zoneId}
-            onChange={(e) => setZoneId(e.target.value)}
-            className="mt-1 w-full rounded-md border border-control bg-surface px-3 py-3"
-          >
-            <option value="" disabled>Seleccione su zona…</option>
-            {zones.map((z) => (
-              <option key={z.id} value={z.id}>{z.name}</option>
-            ))}
-          </select>
-        </label>
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+        {/* Formulario */}
+        <form onSubmit={submit} noValidate className="rounded-lg border border-line bg-surface">
+          <h2 className="border-b border-line px-5 py-3.5 text-base font-semibold">{t('sub.formTitle')}</h2>
+          <div className="space-y-5 p-5">
+            <div className="grid gap-5 sm:grid-cols-2">
+              <label className="block">
+                <span className="text-sm font-medium">{t('sub.zone')}</span>
+                <select required value={zoneId} onChange={(e) => setZoneId(e.target.value)} className={field}>
+                  <option value="" disabled>{t('sub.zonePlaceholder')}</option>
+                  {zones.map((z) => (
+                    <option key={z.id} value={z.id}>{z.name}</option>
+                  ))}
+                </select>
+              </label>
 
-        <label className="block">
-          <span className="text-sm font-semibold">Celular</span>
-          <span className="relative mt-1 block">
-            <IconPhone className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-faint" />
-            <input
-              type="tel"
-              inputMode="tel"
-              autoComplete="tel-national"
-              maxLength={20}
-              required
-              placeholder="300 123 4567"
-              value={phone}
-              onChange={(e) => setPhone(formatColombianMobile(e.target.value))}
-              className="w-full rounded-md border border-control py-3 pl-10 pr-3"
-            />
-          </span>
-        </label>
-
-        <label className="flex items-start gap-3 rounded-md bg-raised p-3 text-sm text-fg">
-          <input
-            type="checkbox"
-            checked={consent}
-            onChange={(e) => setConsent(e.target.checked)}
-            className="mt-0.5 size-4 shrink-0"
-          />
-          <span>
-            Autorizo el tratamiento de mi número celular con el único fin de recibir alertas de
-            riesgo, conforme a la Ley 1581 de 2012. El número se almacena cifrado y puedo darme de
-            baja cuando quiera desde este dispositivo.
-          </span>
-        </label>
-
-        <button
-          type="submit"
-          disabled={sending || !zoneId || !consent}
-          className="w-full rounded-lg bg-primary px-4 py-3.5 font-semibold text-on-primary transition hover:opacity-90 disabled:opacity-50"
-        >
-          {sending ? 'Enviando…' : 'Suscribirme'}
-        </button>
-
-        {feedback && (
-          <p role="alert" className={`rounded-md border p-3 text-sm ${FEEDBACK_STYLE[feedback.kind]}`}>
-            {feedback.text}
-          </p>
-        )}
-      </form>
-
-      <section aria-labelledby="mis-suscripciones" className="rounded-lg border border-line bg-surface p-5">
-        <h2 id="mis-suscripciones" className="font-bold">Mis suscripciones en este dispositivo</h2>
-        {mine.length === 0 ? (
-          <p className="mt-2 text-sm text-muted">
-            Aún no hay suscripciones hechas desde este celular.
-          </p>
-        ) : (
-          <ul className="mt-3 divide-y divide-rule">
-            {mine.map((s) => (
-              <li key={s.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-                <span className="min-w-0">
-                  <span className="block font-medium">{zoneName(s.zoneId)}</span>
-                  <span className="block text-xs text-muted">
-                    {s.phoneMasked} · desde {formatDateTime(s.createdAt)}
-                  </span>
+              <label className="block">
+                <span className="text-sm font-medium">{t('sub.phone')}</span>
+                <span className="relative block">
+                  <IconPhone className="pointer-events-none absolute left-3 top-1/2 mt-0.75 size-4 -translate-y-1/2 text-faint" />
+                  <input
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel-national"
+                    maxLength={20}
+                    required
+                    placeholder="300 123 4567"
+                    value={phone}
+                    onChange={(e) => setPhone(formatColombianMobile(e.target.value))}
+                    className={`${field} pl-9`}
+                  />
                 </span>
-                {s.cancelPending ? (
-                  <span className="rounded-full bg-warning-bg px-3 py-1 text-xs font-semibold text-warning-ink">
-                    Baja pendiente de envío
-                  </span>
-                ) : (
-                  <button
-                    onClick={() => void cancel(s)}
-                    disabled={cancelling === s.id}
-                    className="rounded-md border border-negative-ink/30 px-3 py-2 text-sm font-semibold text-negative-ink transition hover:bg-negative-bg disabled:opacity-50"
-                  >
-                    {cancelling === s.id ? 'Procesando…' : 'Dar de baja'}
-                  </button>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-        <p className="mt-3 text-xs text-muted">
-          Por seguridad, solo puede darse de baja desde el dispositivo con el que se suscribió.
-        </p>
-      </section>
+                <span className="mt-1 block text-xs text-muted">{t('sub.phoneHint')}</span>
+              </label>
+            </div>
 
-      {(pending.length > 0 || lastMessage) && (
-        <section className="rounded-lg border border-dashed border-warning-line bg-warning-bg p-5">
-          <h2 className="flex items-center gap-2 font-bold text-warning-ink">
-            <IconWifiOff className="size-5" /> Pendientes de envío ({pending.length})
-          </h2>
-          {lastMessage && <p className="mt-1 text-sm text-positive-ink">{lastMessage}</p>}
-          <ul className="mt-2 space-y-1 text-sm text-warning-ink">
-            {pending.map((p) => (
-              <li key={p.id}>
-                {p.kind === 'subscription'
-                  ? `Suscripción a ${zoneName(p.payload.zone_id)}`
-                  : 'Baja de una suscripción'}{' '}
-                · guardado {formatDateTime(p.createdAt)}
-                {p.attempts > 0 && ` · ${p.attempts} intento(s)`}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+            <label className="flex items-start gap-3 rounded-md border border-line bg-raised p-3.5 text-sm">
+              <input
+                type="checkbox"
+                checked={consent}
+                onChange={(e) => setConsent(e.target.checked)}
+                className="mt-0.5 size-4 shrink-0 accent-current"
+              />
+              <span>{t('sub.consent')}</span>
+            </label>
+
+            {feedback && (
+              <p role="alert" className={`rounded-md border p-3 text-sm ${FEEDBACK_STYLE[feedback.kind]}`}>
+                {feedback.text}
+              </p>
+            )}
+          </div>
+          <div className="flex justify-end border-t border-line px-5 py-3.5">
+            <button
+              type="submit"
+              disabled={sending || !zoneId || !consent}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 font-medium text-on-primary transition hover:opacity-90 disabled:opacity-50 sm:w-auto"
+            >
+              <IconBell className="size-4" />
+              {sending ? t('sub.sending') : t('sub.submit')}
+            </button>
+          </div>
+        </form>
+
+        {/* Columna derecha: suscripciones de este dispositivo y qué esperar */}
+        <div className="space-y-6">
+          <section aria-labelledby="mis-suscripciones" className="rounded-lg border border-line bg-surface">
+            <h2 id="mis-suscripciones" className="border-b border-line px-4 py-3.5 text-base font-semibold">
+              {t('sub.mine')}
+            </h2>
+            {mine.length === 0 ? (
+              <p className="px-4 py-4 text-sm text-muted">{t('sub.mineEmpty')}</p>
+            ) : (
+              <ul className="divide-y divide-rule">
+                {mine.map((s) => (
+                  <li key={s.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                    <span className="min-w-0">
+                      <span className="block font-medium">{zoneName(s.zoneId)}</span>
+                      <span className="block text-xs text-muted">
+                        {s.phoneMasked} · {t('sub.since', { date: formatDateTime(s.createdAt, locale) })}
+                      </span>
+                    </span>
+                    {s.cancelPending ? (
+                      <span className="rounded-full bg-warning-bg px-2.5 py-1 text-xs font-medium text-warning-ink">
+                        {t('sub.cancelPending')}
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => void cancel(s)}
+                        disabled={cancelling === s.id}
+                        className="rounded-md border border-control px-3 py-1.5 text-sm font-medium text-negative-ink transition hover:bg-negative-bg disabled:opacity-50"
+                      >
+                        {cancelling === s.id ? t('sub.processing') : t('sub.cancel')}
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <p className="border-t border-line px-4 py-3 text-xs text-muted">{t('sub.cancelNote')}</p>
+          </section>
+
+          {(pending.length > 0 || lastMessage) && (
+            <section className="rounded-lg border border-warning-line bg-warning-bg p-4">
+              <h2 className="flex items-center gap-2 text-sm font-semibold text-warning-ink">
+                <IconWifiOff className="size-4" /> {t('sub.pending', { count: pending.length })}
+              </h2>
+              {lastMessage && <p className="mt-1 text-sm text-positive-ink">{lastMessage}</p>}
+              <ul className="mt-2 space-y-1 text-sm text-warning-ink">
+                {pending.map((p) => (
+                  <li key={p.id}>
+                    {p.kind === 'subscription'
+                      ? t('sub.pendingSub', { zone: zoneName(p.payload.zone_id) })
+                      : t('sub.pendingCancel')}
+                    {' · '}
+                    {t('sub.savedAt', { date: formatDateTime(p.createdAt, locale) })}
+                    {p.attempts > 0 && ` · ${t('sub.attempts', { count: p.attempts })}`}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          <section aria-labelledby="que-esperar" className="rounded-lg border border-line bg-surface">
+            <h2 id="que-esperar" className="border-b border-line px-4 py-3.5 text-base font-semibold">
+              {t('sub.factsTitle')}
+            </h2>
+            <ul className="divide-y divide-rule">
+              <Fact icon={<IconBell className="size-4" />} title={t('sub.fact1Title')}>{t('sub.fact1')}</Fact>
+              <Fact icon={<IconWifiOff className="size-4" />} title={t('sub.fact2Title')}>{t('sub.fact2')}</Fact>
+              <Fact icon={<IconShield className="size-4" />} title={t('sub.fact3Title')}>{t('sub.fact3')}</Fact>
+            </ul>
+          </section>
+        </div>
+      </div>
     </div>
   )
 }

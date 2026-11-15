@@ -1,31 +1,33 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { IconBell, IconSparkles, IconWifiOff } from '../components/icons'
 import { formatDateTime } from '../domain/time'
 import type { ModelCard } from '../domain/types'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
-import { modelInfoService } from '../services'
 import { featureLabel } from '../i18n/domain'
 import { useI18n } from '../i18n/I18nProvider'
+import { modelInfoService } from '../services'
 
-const percent = (value: number | undefined) =>
-  value === undefined ? '—' : `${Math.round(value * 100)} %`
+const percent = (value: number | undefined) => (value === undefined ? '—' : `${Math.round(value * 100)}%`)
 
-function Step({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
+function Step({ n, icon, title, children }: { n: number; icon: ReactNode; title: string; children: ReactNode }) {
   return (
-    <section className="rounded-lg border border-line bg-surface p-5">
-      <h2 className="flex items-center gap-2 font-bold">
-        <span className="grid size-9 place-items-center rounded-md bg-raised text-fg">{icon}</span>
-        {title}
-      </h2>
-      <div className="mt-2 space-y-2 text-fg">{children}</div>
-    </section>
+    <li className="flex gap-4 p-5">
+      <span className="grid size-9 shrink-0 place-items-center rounded-md border border-line bg-raised text-muted">{icon}</span>
+      <div className="min-w-0">
+        <h2 className="text-base font-semibold">
+          <span className="num text-muted">{n}.</span> {title}
+        </h2>
+        <div className="mt-1.5 space-y-2 text-[15px] text-fg">{children}</div>
+      </div>
+    </li>
   )
 }
 
 export function HowItWorksPage() {
   const translator = useI18n()
-  useDocumentTitle('Cómo funciona')
+  const { t, locale } = translator
+  useDocumentTitle(t('how.docTitle'))
   const [card, setCard] = useState<ModelCard | null>(null)
   const [error, setError] = useState(false)
 
@@ -36,113 +38,96 @@ export function HowItWorksPage() {
       .catch(() => setError(true))
   }, [])
 
-  const importances = card
-    ? Object.entries(card.feature_importances).sort(([, a], [, b]) => b - a)
-    : []
+  const importances = card ? Object.entries(card.feature_importances).sort(([, a], [, b]) => b - a) : []
   const maxImportance = importances[0]?.[1] ?? 1
 
   return (
-    <div className="space-y-5">
-      <header className="rounded-lg bg-linear-to-br from-slate-800 to-slate-900 p-5 text-white">
-        <h1 className="text-2xl font-bold">Cómo funciona AlertaSinRed</h1>
-        <p className="mt-1 text-slate-300">
-          Alertas de riesgo de deslizamiento y creciente de ríos que siguen disponibles cuando
-          no hay internet, justo cuando más se necesitan.
-        </p>
+    <div className="space-y-6">
+      <header className="max-w-2xl">
+        <h1 className="text-2xl font-semibold tracking-tight">{t('how.title')}</h1>
+        <p className="mt-1.5 text-muted">{t('how.lead')}</p>
       </header>
 
-      <Step icon={<IconSparkles className="size-5" />} title="1. Un modelo de inteligencia artificial estima el riesgo">
-        <p>
-          Cada hora el servidor descarga, para cada zona, la lluvia de las últimas 24 h, 72 h y
-          7 días, el pronóstico de las próximas 24 h, la humedad del suelo y el caudal del río
-          más cercano (Open-Meteo). Les suma dos datos fijos del terreno: la pendiente y la
-          susceptibilidad a movimientos en masa (Servicio Geológico Colombiano).
-        </p>
-        <p>
-          Con esas 8 variables, un modelo de clasificación (Random Forest) asigna uno de cuatro
-          niveles: <strong>bajo, moderado, alto o muy alto</strong>, junto con la probabilidad
-          de cada uno y los factores que más pesaron.
-        </p>
-      </Step>
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
+        <ol className="divide-y divide-rule rounded-lg border border-line bg-surface">
+          <Step n={1} icon={<IconSparkles className="size-4.5" />} title={t('how.step1Title')}>
+            <p>{t('how.step1a')}</p>
+            <p>{t('how.step1b')}</p>
+          </Step>
+          <Step n={2} icon={<IconWifiOff className="size-4.5" />} title={t('how.step2Title')}>
+            <p>{t('how.step2a')}</p>
+            <p>{t('how.step2b')}</p>
+          </Step>
+          <Step n={3} icon={<IconBell className="size-4.5" />} title={t('how.step3Title')}>
+            <p>{t('how.step3a')}</p>
+            <Link to="/suscribirme" className="inline-block font-medium underline underline-offset-2">
+              {t('how.subscribe')}
+            </Link>
+          </Step>
+        </ol>
 
-      <Step icon={<IconWifiOff className="size-5" />} title="2. Funciona sin internet">
-        <p>
-          La primera vez que abre la app con conexión, el celular guarda la aplicación y el
-          último estado de riesgo de todas las zonas. Si después se queda sin señal, la app
-          sigue abriendo y le muestra esa información, avisándole de cuándo es.
-        </p>
-        <p>
-          Lo que haga sin conexión (suscribirse o darse de baja) queda pendiente y se envía
-          solo cuando vuelve la señal.
-        </p>
-      </Step>
+        <section aria-labelledby="ficha" className="rounded-lg border border-line bg-surface">
+          <h2 id="ficha" className="border-b border-line px-5 py-3.5 text-base font-semibold">{t('how.card')}</h2>
+          {error && <p className="p-5 text-sm text-muted">{t('how.cardError')}</p>}
+          {!card && !error && <div className="m-5 h-40 animate-pulse rounded-md bg-active" aria-hidden />}
+          {card && (
+            <>
+              <dl className="grid grid-cols-2 border-b border-line">
+                {(
+                  [
+                    [t('how.accuracy'), card.metrics.test_accuracy, 'border-b border-r'],
+                    [t('how.f1'), card.metrics.test_f1_macro, 'border-b'],
+                    [t('how.recallHigh'), card.metrics.recall_alto, 'border-r'],
+                    [t('how.recallVeryHigh'), card.metrics.recall_muy_alto, ''],
+                  ] as const
+                ).map(([label, value, borders]) => (
+                  <div key={label} className={`border-line px-5 py-4 ${borders}`}>
+                    <dt className="text-xs text-muted">{label}</dt>
+                    <dd className="num mt-0.5 text-2xl font-semibold">{percent(value)}</dd>
+                  </div>
+                ))}
+              </dl>
+              <div className="space-y-6 p-5">
+                <p className="text-xs text-muted">
+                  {t('how.cardMeta', {
+                    algorithm: card.algorithm,
+                    version: card.version,
+                    date: formatDateTime(card.trained_at, locale),
+                    samples: translator.number(card.n_samples, 0),
+                    source: card.data_source,
+                  })}
+                </p>
 
-      <Step icon={<IconBell className="size-5" />} title="3. SMS de respaldo">
-        <p>
-          Si el riesgo de su zona sube a alto o muy alto, le llega un mensaje de texto. El SMS
-          no necesita datos ni internet: basta con señal de celular. Cuando el riesgo baja, le
-          avisamos que la alerta terminó.
-        </p>
-        <Link to="/suscribirme" className="inline-block font-semibold text-fg underline">
-          Suscribirme a las alertas
-        </Link>
-      </Step>
-
-      <section aria-labelledby="ficha" className="rounded-lg border border-line bg-surface p-5">
-        <h2 id="ficha" className="font-bold">Ficha técnica del modelo</h2>
-        {error && (
-          <p className="mt-2 text-sm text-muted">
-            No se pudo cargar la ficha del modelo. Conéctese para verla.
-          </p>
-        )}
-        {!card && !error && <div className="mt-3 h-32 animate-pulse rounded-md bg-raised" aria-hidden />}
-        {card && (
-          <>
-            <dl className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {[
-                ['Exactitud', percent(card.metrics.test_accuracy)],
-                ['F1 macro', percent(card.metrics.test_f1_macro)],
-                ['Detecta "alto"', percent(card.metrics.recall_alto)],
-                ['Detecta "muy alto"', percent(card.metrics.recall_muy_alto)],
-              ].map(([label, value]) => (
-                <div key={label} className="rounded-md bg-raised p-3">
-                  <dt className="text-xs text-muted">{label}</dt>
-                  <dd className="text-xl font-bold tabular-nums">{value}</dd>
+                <div>
+                  <h3 className="text-sm font-semibold">{t('how.importances')}</h3>
+                  <ul className="mt-2.5 space-y-2">
+                    {importances.map(([name, value]) => (
+                      <li key={name} className="grid grid-cols-[minmax(0,10rem)_1fr_2.75rem] items-center gap-3 text-sm">
+                        <span className="truncate text-muted">{featureLabel(translator, name)}</span>
+                        <span className="h-2 overflow-hidden rounded-full bg-active">
+                          <span className="block h-full rounded-full bg-fg" style={{ width: `${(value / maxImportance) * 100}%` }} />
+                        </span>
+                        <span className="num text-right">{percent(value)}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              ))}
-            </dl>
-            <p className="mt-2 text-xs text-muted">
-              {card.algorithm} · versión {card.version} · entrenado {formatDateTime(card.trained_at)} con{' '}
-              {card.n_samples.toLocaleString('es-CO')} ejemplos ({card.data_source})
-            </p>
 
-            <h3 className="mt-5 text-sm font-semibold text-fg">¿Qué variables pesan más?</h3>
-            <ul className="mt-2 space-y-1.5">
-              {importances.map(([name, value]) => (
-                <li key={name} className="flex items-center gap-3 text-sm">
-                  <span className="w-44 shrink-0 text-muted">{featureLabel(translator, name)}</span>
-                  <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-raised">
-                    <span className="block h-full rounded-full bg-slate-700" style={{ width: `${(value / maxImportance) * 100}%` }} />
-                  </span>
-                  <span className="w-10 text-right tabular-nums">{percent(value)}</span>
-                </li>
-              ))}
-            </ul>
+                <div>
+                  <h3 className="text-sm font-semibold">{t('how.limitations')}</h3>
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+                    {card.limitations.map((l) => (
+                      <li key={l}>{l}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </>
+          )}
+        </section>
+      </div>
 
-            <h3 className="mt-5 text-sm font-semibold text-fg">Limitaciones conocidas</h3>
-            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-fg">
-              {card.limitations.map((l) => (
-                <li key={l}>{l}</li>
-              ))}
-            </ul>
-          </>
-        )}
-      </section>
-
-      <p className="text-center text-sm text-muted">
-        Esta herramienta complementa, no reemplaza, los avisos oficiales de la UNGRD, el IDEAM y
-        las alcaldías. En emergencia llame al <strong>123</strong>.
-      </p>
+      <p className="max-w-2xl text-sm text-muted">{t('how.disclaimer')}</p>
     </div>
   )
 }
