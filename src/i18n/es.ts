@@ -376,6 +376,27 @@ export const es = {
   'audit.ZONE_CREATED': 'Zona registrada',
   'audit.ZONE_UPDATED': 'Zona actualizada',
   'audit.SMS_TEST_SENT': 'SMS de prueba',
+
+  // --- Acceso de operadores
+  'login.eyebrow': 'Panel del operador',
+  'login.title': 'Gestión del riesgo en Nariño y Putumayo',
+  'login.lead': 'Herramienta para el personal de gestión del riesgo: evaluar, avisar y dejar registro.',
+  'login.cap1Title': 'Evaluación con IA a demanda',
+  'login.cap1': 'Ejecute el modelo sobre todas las zonas y vea el resultado al instante.',
+  'login.cap2Title': 'Zonas, cuentas y SMS',
+  'login.cap2': 'Ajuste la capa estática, administre operadores y pruebe la pasarela SMS.',
+  'login.cap3Title': 'Bitácora y exportación',
+  'login.cap3': 'Historial de evaluaciones en CSV y registro de cada acción sensible.',
+  'login.now': 'Estado de la región ahora',
+  'login.nowZones': '{count} zonas monitoreadas',
+  'login.nowNone': 'Sin evaluaciones recientes',
+  'login.formTitle': 'Iniciar sesión',
+  'login.formLead': 'Use el correo institucional registrado por su administrador.',
+  'login.showPassword': 'Mostrar contraseña',
+  'login.hidePassword': 'Ocultar contraseña',
+  'login.audit': 'Acceso restringido. Cada ingreso, correcto o fallido, queda en la bitácora de auditoría.',
+  'login.noAccount': '¿Sin cuenta? Las cuentas las crea un administrador desde el panel.',
+  'login.back': 'Ver el riesgo de las zonas',
 }
 
 export type MessageKey = keyof typeof es

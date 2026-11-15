@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { ChangePasswordForm } from '../components/admin/ChangePasswordForm'
+import { LoginForm } from '../components/admin/LoginForm'
 import { AuditLogPanel, ExportCsvPanel, SmsTestPanel } from '../components/admin/OperationsTools'
 import { Card, Field, field, Message, primaryButton, secondaryButton } from '../components/admin/ui'
 import { ZonesPanel } from '../components/admin/ZonesPanel'
-import { IconRefresh, IconShield } from '../components/icons'
+import { IconRefresh } from '../components/icons'
 import { RelativeTime } from '../components/RelativeTime'
 import { RiskBadge } from '../components/RiskBadge'
 import { LEVEL_ORDER, RISK_LEVELS } from '../domain/riskLevel'
@@ -31,56 +32,6 @@ function useApiErrorHandler() {
       return err instanceof Error ? err.message : t('admin.unexpected')
     },
     [logout, t],
-  )
-}
-
-function LoginForm() {
-  const { t } = useI18n()
-  const { login, notice } = useAuth()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
-
-  const submit = async (e: FormEvent) => {
-    e.preventDefault()
-    setBusy(true)
-    setError(null)
-    try {
-      await login(email, password)
-    } catch (err) {
-      setError(err instanceof ApiError && err.status === 429 ? t('admin.tooMany') : t('admin.badCredentials'))
-    } finally {
-      setPassword('')
-      setBusy(false)
-    }
-  }
-
-  return (
-    <div className="grid min-h-[60vh] place-items-center">
-      <form onSubmit={submit} className="w-full max-w-sm space-y-5 rounded-lg border border-line bg-surface p-6">
-        <div>
-          <span className="inline-grid size-10 place-items-center rounded-md border border-line bg-raised text-fg">
-            <IconShield className="size-5" />
-          </span>
-          <h1 className="mt-3 text-2xl font-semibold tracking-tight">{t('admin.loginTitle')}</h1>
-          <p className="mt-1 text-sm text-muted">{t('admin.loginLead')}</p>
-        </div>
-        {notice && <p className="rounded-md border border-warning-line bg-warning-bg p-3 text-sm text-warning-ink">{notice}</p>}
-        <Field label={t('admin.email')}>
-          <input type="email" required autoComplete="username" placeholder="correo@entidad.gov.co"
-            value={email} onChange={(e) => setEmail(e.target.value)} className={field} />
-        </Field>
-        <Field label={t('admin.password')}>
-          <input type="password" required minLength={8} autoComplete="current-password"
-            value={password} onChange={(e) => setPassword(e.target.value)} className={field} />
-        </Field>
-        {error && <p role="alert" className="text-sm text-negative-ink">{error}</p>}
-        <button disabled={busy} className={`${primaryButton} w-full py-2.5`}>
-          {busy ? t('admin.verifying') : t('admin.signIn')}
-        </button>
-      </form>
-    </div>
   )
 }
 
