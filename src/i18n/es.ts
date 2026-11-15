@@ -160,6 +160,29 @@ export const es = {
   'region.counts': 'Zonas por nivel de riesgo',
   'shell.emergency': 'Emergencias',
   'shell.emergencyLine': 'Línea única nacional',
+
+  // --- Página de zona
+  'zone.docTitle': 'Zona',
+  'zone.loading': 'Cargando zona',
+  'zone.notFound': 'Zona no encontrada.',
+  'zone.backHome': 'Volver al inicio',
+  'zone.allZones': 'Todas las zonas',
+  'zone.isMine': 'Es mi zona',
+  'zone.setMine': 'Fijar como mi zona',
+  'zone.subscribe': 'Recibir alertas por SMS',
+  'zone.share': 'Compartir',
+  'zone.notAssessed': 'Esta zona aún no ha sido evaluada.',
+  'zone.confidenceLabel': 'Confianza del modelo',
+  'zone.assessed': 'Evaluado',
+  'zone.model': 'Modelo',
+  'zone.weatherSource': 'Clima: {source}',
+  'zone.todo': '¿Qué hacer?',
+  'zone.why': '¿Por qué este nivel?',
+  'zone.noFactors': 'No hay factores de riesgo destacados.',
+  'zone.probabilities': 'Probabilidad por nivel',
+  'zone.inputs': 'Variables de entrada',
+  'zone.history': 'Evolución reciente',
+  'zone.historyEmpty': 'Aún no hay evaluaciones anteriores.',
 }
 
 export type MessageKey = keyof typeof es
