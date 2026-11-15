@@ -12,7 +12,6 @@ interface RiskLevelInfo {
   badge: string
   surface: string
   stripe: string
-  hero: string
 }
 
 export const RISK_LEVELS: Record<RiskLevel, RiskLevelInfo> = {
@@ -22,7 +21,6 @@ export const RISK_LEVELS: Record<RiskLevel, RiskLevelInfo> = {
     badge: 'bg-risk-low text-white dark:text-black',
     surface: 'border-line bg-surface',
     stripe: 'bg-risk-low',
-    hero: 'from-green-700 to-green-800',
   },
   MODERADO: {
     severity: 1,
@@ -30,7 +28,6 @@ export const RISK_LEVELS: Record<RiskLevel, RiskLevelInfo> = {
     badge: 'bg-risk-moderate text-black',
     surface: 'border-line bg-surface',
     stripe: 'bg-risk-moderate',
-    hero: 'from-yellow-600 to-amber-700',
   },
   ALTO: {
     severity: 2,
@@ -38,7 +35,6 @@ export const RISK_LEVELS: Record<RiskLevel, RiskLevelInfo> = {
     badge: 'bg-risk-high text-white dark:text-black',
     surface: 'border-risk-high/40 bg-risk-high/5',
     stripe: 'bg-risk-high',
-    hero: 'from-orange-600 to-orange-700',
   },
   MUY_ALTO: {
     severity: 3,
@@ -46,7 +42,6 @@ export const RISK_LEVELS: Record<RiskLevel, RiskLevelInfo> = {
     badge: 'bg-risk-extreme text-white dark:text-black',
     surface: 'border-risk-extreme/40 bg-risk-extreme/5',
     stripe: 'bg-risk-extreme',
-    hero: 'from-red-600 to-red-700',
   },
 }
 

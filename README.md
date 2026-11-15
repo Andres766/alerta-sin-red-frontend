@@ -9,7 +9,8 @@ alertas por SMS.
 
 | Tema | Tecnología |
 |---|---|
-| Interfaz | React 19 · TypeScript (estricto) · Tailwind CSS 4 · React Router 7 |
+| Interfaz | React 19 · TypeScript (estricto) · Tailwind CSS 4 · React Router 7 · Inter (local) |
+| Idiomas y temas | Español e inglés (diccionarios tipados) · claro, oscuro o el del sistema |
 | Offline | Service Worker propio (Workbox, `injectManifest`) · IndexedDB (`idb`) · Background Sync |
 | Build y pruebas | Vite 8 · Vitest |
 | Despliegue | Vercel (reenvía `/api/*` a Render) · Docker + Nginx (alternativa) |
@@ -43,9 +44,22 @@ La estrategia offline (qué se guarda, cuándo y cómo se sincroniza) está en
 - Administradores: cuentas de operadores, zonas monitoreadas, SMS de prueba de la
   pasarela y bitácora de auditoría. Cada operador puede cambiar su contraseña.
 
+**Interfaz**
+- **Español e inglés** con un selector ES/EN. Los textos viven en `src/i18n/es.ts` y
+  `src/i18n/en.ts`; el inglés se tipa contra el español, así que una clave sin traducir
+  no compila, y una prueba verifica que ambos tengan las mismas claves y parámetros.
+  Fechas, números y "hace 5 minutos" siguen el idioma (`Intl`). Las notificaciones del
+  celular también salen en el idioma elegido.
+- **Tema claro, oscuro o el del sistema.** Los colores son variables CSS (`src/index.css`)
+  con un juego para cada tema; un script mínimo (`public/theme-init.js`) aplica el tema
+  antes de pintar para que no haya parpadeo. El color solo marca los niveles de riesgo.
+- **Diseño de aplicación:** barra lateral en escritorio, barra superior y navegación
+  inferior en celular; las pantallas usan el ancho disponible en dos columnas y el panel
+  del operador se organiza en pestañas.
+
 **Accesibilidad:** títulos por página, anuncio de navegación para lectores de pantalla,
-enlaces reales en el mapa, foco nunca oculto bajo la barra inferior y respeto de
-`prefers-reduced-motion`.
+enlaces reales en el mapa, pestañas con teclado (patrón WAI-ARIA), foco nunca oculto
+bajo la barra inferior, contraste AA en ambos temas y respeto de `prefers-reduced-motion`.
 
 ## Desarrollo
 
@@ -102,10 +116,11 @@ hay CORS y el Service Worker puede cachear las respuestas.
 
 ```
 src/
-├── domain/          tipos, niveles de riesgo, geodesia, tiempo, filtros, teléfono, texto para compartir
+├── domain/          tipos, niveles de riesgo, geodesia, tiempo, filtros, teléfono
+├── i18n/            diccionarios es/en, traductor, textos del dominio (niveles, factores, compartir)
 ├── infrastructure/  ApiClient (HTTP tipado) e IndexedDB (snapshot, outbox, suscripciones, preferencias)
 ├── application/     RiskService, SubscriptionService, OutboxProcessor, RiskNotifier, AdminService…
-├── hooks/           estado de React (snapshot, conexión, bandeja de salida, sesión)
+├── hooks/           estado de React (snapshot, conexión, bandeja de salida, sesión, tema)
 ├── components/      interfaz reutilizable (tarjetas, mapa esquemático, íconos…)
 ├── pages/           pantallas
 ├── components/admin/ secciones del panel del operador

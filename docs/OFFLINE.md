@@ -13,7 +13,7 @@ disponible cuando no hay internet, que es justo cuando más falta hace.
 | Detalle de una zona visitada (`/zones/{id}`) | Cache Storage | *Network-first* (4 s) | Al abrir un enlace directo |
 | Historial de una zona | Cache Storage | *Stale-while-revalidate* | Cada vez que se consulta |
 | Ficha del modelo de IA (`/model`) | Cache Storage | *Stale-while-revalidate* | Al abrir "Cómo funciona" |
-| Preferencias ("mi zona", avisos) | IndexedDB (`preferences`) | Local | Al cambiarlas |
+| Preferencias ("mi zona", avisos, idioma) | IndexedDB (`preferences`) | Local | Al cambiarlas |
 | Suscripciones y bajas hechas sin red | IndexedDB (`outbox`) | Patrón *Outbox* + Background Sync | En cuanto vuelve la conexión |
 | Suscripciones de este dispositivo | IndexedDB (`subscriptions`) | Local | Al suscribirse o darse de baja |
 | `/auth/*`, `/admin/*` | — | **Nunca** se guardan | — |
@@ -86,7 +86,7 @@ al actualizar la app.
 |---|---|
 | 1 | Almacenes `snapshot` y `outbox` |
 | 2 | Almacén `subscriptions` (códigos de baja) |
-| 3 | Almacén `preferences` ("mi zona", avisos activados, último nivel avisado) |
+| 3 | Almacén `preferences` ("mi zona", avisos activados, último nivel avisado; el idioma se guarda aquí sin cambiar de versión) |
 
 ## 5. Avisos en el dispositivo
 
