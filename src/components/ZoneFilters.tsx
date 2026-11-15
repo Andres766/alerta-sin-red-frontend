@@ -1,12 +1,14 @@
 import { RISK_LEVELS } from '../domain/riskLevel'
 import type { LevelFilter } from '../domain/zoneFilter'
+import { levelLabel } from '../i18n/domain'
+import { useI18n } from '../i18n/I18nProvider'
 
-const OPTIONS: { value: LevelFilter; label: string; dot: string }[] = [
-  { value: 'MUY_ALTO', label: RISK_LEVELS.MUY_ALTO.label, dot: RISK_LEVELS.MUY_ALTO.stripe },
-  { value: 'ALTO', label: RISK_LEVELS.ALTO.label, dot: RISK_LEVELS.ALTO.stripe },
-  { value: 'MODERADO', label: RISK_LEVELS.MODERADO.label, dot: RISK_LEVELS.MODERADO.stripe },
-  { value: 'BAJO', label: RISK_LEVELS.BAJO.label, dot: RISK_LEVELS.BAJO.stripe },
-  { value: 'SIN_EVALUAR', label: 'Sin evaluar', dot: 'bg-slate-400' },
+const OPTIONS: { value: LevelFilter; dot: string }[] = [
+  { value: 'MUY_ALTO', dot: RISK_LEVELS.MUY_ALTO.stripe },
+  { value: 'ALTO', dot: RISK_LEVELS.ALTO.stripe },
+  { value: 'MODERADO', dot: RISK_LEVELS.MODERADO.stripe },
+  { value: 'BAJO', dot: RISK_LEVELS.BAJO.stripe },
+  { value: 'SIN_EVALUAR', dot: 'bg-risk-none' },
 ]
 
 interface Props {
@@ -17,20 +19,22 @@ interface Props {
 }
 
 export function ZoneFilters({ query, onQuery, levels, onToggleLevel }: Props) {
+  const translator = useI18n()
+  const { t } = translator
   return (
     <div className="space-y-2">
       <label className="block">
-        <span className="sr-only">Buscar zona por nombre o municipio</span>
+        <span className="sr-only">{t('filter.searchLabel')}</span>
         <input
           type="search"
           value={query}
           onChange={(e) => onQuery(e.target.value)}
-          placeholder="Buscar por zona o municipio…"
+          placeholder={t('filter.search')}
           maxLength={60}
-          className="w-full rounded-lg border border-control bg-surface px-4 py-2.5"
+          className="w-full rounded-md border border-control bg-surface px-3 py-2"
         />
       </label>
-      <div role="group" aria-label="Filtrar por nivel de riesgo" className="flex flex-wrap gap-1.5">
+      <div role="group" aria-label={t('filter.levels')} className="flex flex-wrap gap-1.5">
         {OPTIONS.map((o) => {
           const active = levels.has(o.value)
           return (
@@ -42,7 +46,7 @@ export function ZoneFilters({ query, onQuery, levels, onToggleLevel }: Props) {
               className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition ${active ? 'border-primary bg-primary text-on-primary' : 'border-control bg-surface text-fg hover:bg-raised'}`}
             >
               <span className={`size-2 rounded-full ${o.dot}`} aria-hidden />
-              {o.label}
+              {levelLabel(translator, o.value === 'SIN_EVALUAR' ? null : o.value)}
             </button>
           )
         })}

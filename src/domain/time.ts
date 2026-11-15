@@ -1,17 +1,27 @@
-const relative = new Intl.RelativeTimeFormat('es-CO', { numeric: 'auto' })
+const relativeFormats = new Map<string, Intl.RelativeTimeFormat>()
 
-/** "hace 5 minutos", "hace 2 horas"… para dejar claro qué tan viejo es un dato. */
-export function timeAgo(iso: string, now: number = Date.now()): string {
-  const seconds = Math.round((new Date(iso).getTime() - now) / 1000)
-  const abs = Math.abs(seconds)
-  if (abs < 60) return relative.format(seconds, 'second')
-  if (abs < 3600) return relative.format(Math.round(seconds / 60), 'minute')
-  if (abs < 86400) return relative.format(Math.round(seconds / 3600), 'hour')
-  return relative.format(Math.round(seconds / 86400), 'day')
+function relative(locale: string): Intl.RelativeTimeFormat {
+  let format = relativeFormats.get(locale)
+  if (!format) {
+    format = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
+    relativeFormats.set(locale, format)
+  }
+  return format
 }
 
-export function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' })
+/** "hace 5 minutos" / "5 minutes ago"… para dejar claro qué tan viejo es un dato. */
+export function timeAgo(iso: string, now: number = Date.now(), locale = 'es-CO'): string {
+  const seconds = Math.round((new Date(iso).getTime() - now) / 1000)
+  const abs = Math.abs(seconds)
+  const format = relative(locale)
+  if (abs < 60) return format.format(seconds, 'second')
+  if (abs < 3600) return format.format(Math.round(seconds / 60), 'minute')
+  if (abs < 86400) return format.format(Math.round(seconds / 3600), 'hour')
+  return format.format(Math.round(seconds / 86400), 'day')
+}
+
+export function formatDateTime(iso: string, locale = 'es-CO'): string {
+  return new Date(iso).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })
 }
 
 /** Más allá de esto, la evaluación ya no refleja necesariamente el riesgo actual. */

@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { IconBell, IconSparkles, IconWifiOff } from '../components/icons'
-import { FEATURE_LABEL } from '../domain/riskLevel'
 import { formatDateTime } from '../domain/time'
 import type { ModelCard } from '../domain/types'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { modelInfoService } from '../services'
+import { featureLabel } from '../i18n/domain'
+import { useI18n } from '../i18n/I18nProvider'
 
 const percent = (value: number | undefined) =>
   value === undefined ? '—' : `${Math.round(value * 100)} %`
@@ -23,6 +24,7 @@ function Step({ icon, title, children }: { icon: React.ReactNode; title: string;
 }
 
 export function HowItWorksPage() {
+  const translator = useI18n()
   useDocumentTitle('Cómo funciona')
   const [card, setCard] = useState<ModelCard | null>(null)
   const [error, setError] = useState(false)
@@ -118,7 +120,7 @@ export function HowItWorksPage() {
             <ul className="mt-2 space-y-1.5">
               {importances.map(([name, value]) => (
                 <li key={name} className="flex items-center gap-3 text-sm">
-                  <span className="w-44 shrink-0 text-muted">{FEATURE_LABEL[name]?.label ?? name}</span>
+                  <span className="w-44 shrink-0 text-muted">{featureLabel(translator, name)}</span>
                   <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-raised">
                     <span className="block h-full rounded-full bg-slate-700" style={{ width: `${(value / maxImportance) * 100}%` }} />
                   </span>

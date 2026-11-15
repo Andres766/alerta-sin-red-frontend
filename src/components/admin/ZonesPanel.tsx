@@ -1,9 +1,10 @@
 import { useState, type FormEvent } from 'react'
-import { HAZARD_LABEL } from '../../domain/riskLevel'
 import type { HazardType, NewZone, Zone } from '../../domain/types'
 import { useSnapshot } from '../../hooks/useSnapshot'
 import { adminService } from '../../services'
 import { IconMapPin } from '../icons'
+import { hazardLabel } from '../../i18n/domain'
+import { useI18n } from '../../i18n/I18nProvider'
 
 const HAZARDS: HazardType[] = ['DESLIZAMIENTO', 'CRECIENTE', 'MIXTO']
 const field = 'rounded-md border border-control bg-surface px-3 py-2'
@@ -14,6 +15,7 @@ const EMPTY: NewZone = {
 }
 
 function ZoneRow({ zone, token, onSaved }: { zone: Zone; token: string; onSaved: (msg: string) => void }) {
+  const translator = useI18n()
   const [hazard, setHazard] = useState(zone.hazard_type)
   const [susceptibility, setSusceptibility] = useState(zone.susceptibility)
   const [slope, setSlope] = useState(zone.slope_deg)
@@ -43,7 +45,7 @@ function ZoneRow({ zone, token, onSaved }: { zone: Zone; token: string; onSaved:
       </span>
       <select aria-label={`Amenaza de ${zone.name}`} value={hazard}
         onChange={(e) => setHazard(e.target.value as HazardType)} className={field}>
-        {HAZARDS.map((h) => <option key={h} value={h}>{HAZARD_LABEL[h]}</option>)}
+        {HAZARDS.map((h) => <option key={h} value={h}>{hazardLabel(translator, h)}</option>)}
       </select>
       <label className="flex items-center gap-1 text-sm">
         Susc.
@@ -67,6 +69,7 @@ function ZoneRow({ zone, token, onSaved }: { zone: Zone; token: string; onSaved:
 
 /** Registro y actualización de zonas (solo administradores). */
 export function ZonesPanel({ token }: { token: string }) {
+  const translator = useI18n()
   const { data, refresh } = useSnapshot()
   const [draft, setDraft] = useState<NewZone>(EMPTY)
   const [message, setMessage] = useState<string | null>(null)
@@ -120,7 +123,7 @@ export function ZonesPanel({ token }: { token: string }) {
           value={draft.department} onChange={(e) => set('department', e.target.value)} className={field} />
         <select aria-label="Tipo de amenaza" value={draft.hazard_type}
           onChange={(e) => set('hazard_type', e.target.value as HazardType)} className={field}>
-          {HAZARDS.map((h) => <option key={h} value={h}>{HAZARD_LABEL[h]}</option>)}
+          {HAZARDS.map((h) => <option key={h} value={h}>{hazardLabel(translator, h)}</option>)}
         </select>
         <div className="grid grid-cols-2 gap-2">
           <label className="text-xs text-muted">Susceptibilidad (1–5)

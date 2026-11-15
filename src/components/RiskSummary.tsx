@@ -3,9 +3,12 @@ import { countByLevel, LEVEL_ORDER, mostSevere, RISK_LEVELS } from '../domain/ri
 import type { ZoneRisk } from '../domain/types'
 import { IconAlert, IconChevronRight, IconShield } from './icons'
 import { RelativeTime } from './RelativeTime'
+import { alertLabel, levelLabel } from '../i18n/domain'
+import { useI18n } from '../i18n/I18nProvider'
 
 /** Lo primero que ve la persona: ¿hay alguna alerta activa en la región? */
 export function RiskSummary({ items }: { items: ZoneRisk[] }) {
+  const translator = useI18n()
   const worst = mostSevere(items)
   const counts = countByLevel(items)
 
@@ -33,7 +36,7 @@ export function RiskSummary({ items }: { items: ZoneRisk[] }) {
         <div className="min-w-0">
           <p className="text-sm font-medium text-white/80">Estado de la región</p>
           <h2 id="estado-region" className="text-2xl font-bold leading-tight">
-            {calm ? 'Sin alertas activas' : `${info.alert} activa`}
+            {calm ? 'Sin alertas activas' : `${alertLabel(translator, worst.assessment.level)} activa`}
           </h2>
         </div>
       </div>
@@ -54,7 +57,7 @@ export function RiskSummary({ items }: { items: ZoneRisk[] }) {
       <dl className="mt-4 grid grid-cols-4 gap-2 text-center">
         {[...LEVEL_ORDER].reverse().map((lvl) => (
           <div key={lvl} className="rounded-md bg-black/15 px-1 py-2">
-            <dt className="text-[11px] leading-tight text-white/80">{RISK_LEVELS[lvl].label}</dt>
+            <dt className="text-[11px] leading-tight text-white/80">{levelLabel(translator, lvl)}</dt>
             <dd className="text-xl font-bold tabular-nums">{counts[lvl]}</dd>
           </div>
         ))}

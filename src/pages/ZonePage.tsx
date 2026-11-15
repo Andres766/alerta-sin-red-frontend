@@ -5,15 +5,18 @@ import { IconAlert, IconBell, IconSparkles, IconStar } from '../components/icons
 import { RelativeTime } from '../components/RelativeTime'
 import { RiskBadge } from '../components/RiskBadge'
 import { ShareButton } from '../components/ShareButton'
-import { FEATURE_LABEL, HAZARD_LABEL, LEVEL_ORDER, RISK_LEVELS } from '../domain/riskLevel'
+import { FEATURE_UNIT, LEVEL_ORDER, RISK_LEVELS } from '../domain/riskLevel'
 import { formatDateTime } from '../domain/time'
 import type { Assessment, ZoneRisk } from '../domain/types'
 import { useFavoriteZone } from '../hooks/useFavoriteZone'
 import { useSnapshot } from '../hooks/useSnapshot'
 import { riskService } from '../services'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { alertLabel, featureLabel, hazardLabel, keyFactors, levelLabel, recommendations } from '../i18n/domain'
+import { useI18n } from '../i18n/I18nProvider'
 
 export function ZonePage() {
+  const translator = useI18n()
   const { zoneId } = useParams()
   const { data } = useSnapshot()
   const { favoriteId, setFavorite } = useFavoriteZone()
@@ -85,15 +88,15 @@ export function ZonePage() {
       >
         <p className="flex items-center gap-2 text-sm text-white/85">
           <HazardIcon hazard={zone.hazard_type} className="size-4" />
-          {HAZARD_LABEL[zone.hazard_type]} · {zone.municipality}, {zone.department}
+          {hazardLabel(translator, zone.hazard_type)} · {zone.municipality}, {zone.department}
         </p>
         <h1 className="mt-1 text-2xl font-bold leading-tight">{zone.name}</h1>
         {assessment && info ? (
           <>
             <div className="mt-4 flex items-end justify-between gap-4">
               <div>
-                <p className="text-sm text-white/80">{info.alert}</p>
-                <p className="text-3xl font-extrabold">Riesgo {info.label.toLowerCase()}</p>
+                <p className="text-sm text-white/80">{alertLabel(translator, assessment.level)}</p>
+                <p className="text-3xl font-extrabold">Riesgo {levelLabel(translator, assessment.level).toLowerCase()}</p>
               </div>
               <div className="text-right">
                 <p className="text-3xl font-extrabold tabular-nums">{Math.round(assessment.probability * 100)}%</p>
@@ -116,7 +119,7 @@ export function ZonePage() {
             <IconAlert className="size-5 text-muted" /> ¿Qué hacer?
           </h2>
           <ol className="mt-3 space-y-2">
-            {info.recommendations.map((r, i) => (
+            {recommendations(translator, assessment.level).map((r, i) => (
               <li key={r} className="flex gap-3">
                 <span className={`grid size-6 shrink-0 place-items-center rounded-full text-xs font-bold ${info.badge}`}>
                   {i + 1}
@@ -133,9 +136,9 @@ export function ZonePage() {
           <h2 className="flex items-center gap-2 font-bold">
             <IconSparkles className="size-5 text-muted" /> ¿Por qué este nivel?
           </h2>
-          {assessment.key_factors.length ? (
+          {keyFactors(translator, assessment.features).length ? (
             <ul className="mt-3 flex flex-wrap gap-2">
-              {assessment.key_factors.map((f) => (
+              {keyFactors(translator, assessment.features).map((f) => (
                 <li key={f} className="rounded-full bg-raised px-3 py-1.5 text-sm text-fg">{f}</li>
               ))}
             </ul>
@@ -149,7 +152,7 @@ export function ZonePage() {
               const p = assessment.probabilities[lvl] ?? 0
               return (
                 <div key={lvl} className="flex items-center gap-3 text-sm">
-                  <span className="w-16 shrink-0 text-muted">{RISK_LEVELS[lvl].label}</span>
+                  <span className="w-16 shrink-0 text-muted">{levelLabel(translator, lvl)}</span>
                   <div className="h-3 flex-1 overflow-hidden rounded-full bg-raised">
                     <div className={`h-full rounded-full ${RISK_LEVELS[lvl].stripe}`} style={{ width: `${p * 100}%` }} />
                   </div>
@@ -163,10 +166,10 @@ export function ZonePage() {
           <dl className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
             {Object.entries(assessment.features).map(([key, value]) => (
               <div key={key} className="rounded-md bg-raised p-3">
-                <dt className="text-xs text-muted">{FEATURE_LABEL[key]?.label ?? key}</dt>
+                <dt className="text-xs text-muted">{featureLabel(translator, key)}</dt>
                 <dd className="mt-0.5 font-bold tabular-nums">
                   {Number(value).toLocaleString('es-CO', { maximumFractionDigits: 2 })}{' '}
-                  <span className="text-xs font-normal text-muted">{FEATURE_LABEL[key]?.unit}</span>
+                  <span className="text-xs font-normal text-muted">{FEATURE_UNIT[key]}</span>
                 </dd>
               </div>
             ))}
@@ -182,7 +185,7 @@ export function ZonePage() {
             {[...history].reverse().map((h) => (
               <div
                 key={h.id}
-                title={`${formatDateTime(h.assessed_at)}: ${RISK_LEVELS[h.level].label}`}
+                title={`${formatDateTime(h.assessed_at)}: ${levelLabel(translator, h.level)}`}
                 className={`flex-1 rounded-t ${RISK_LEVELS[h.level].stripe}`}
                 style={{ height: `${25 + RISK_LEVELS[h.level].severity * 25}%` }}
               />

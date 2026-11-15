@@ -1,0 +1,132 @@
+/**
+ * Textos en español (idioma base). El diccionario en inglés se tipa contra este,
+ * así que una clave que falte en inglés no compila.
+ * Los valores con {param} se completan con t('clave', { param }).
+ */
+export const es = {
+  // --- General
+  'app.name': 'AlertaSinRed',
+  'app.scope': 'Riesgo climático · Nariño y Putumayo',
+  'app.emergency': 'En emergencia llame al {phone}',
+  'app.skip': 'Saltar al contenido',
+  'app.page': 'Página: {title}',
+  'common.close': 'Cerrar',
+  'common.back': 'Volver',
+  'common.update': 'Actualizar',
+  'common.later': 'Luego',
+  'common.notNow': 'Ahora no',
+  'common.loading': 'Cargando…',
+  'common.save': 'Guardar',
+  'common.you': 'Usted',
+
+  // --- Navegación y preferencias
+  'nav.label': 'Principal',
+  'nav.zones': 'Zonas',
+  'nav.alerts': 'Alertas SMS',
+  'nav.how': 'Cómo funciona',
+  'nav.operator': 'Operador',
+  'prefs.theme': 'Tema',
+  'prefs.theme.light': 'Claro',
+  'prefs.theme.dark': 'Oscuro',
+  'prefs.theme.system': 'Sistema',
+  'prefs.language': 'Idioma',
+  'footer.data': 'Datos: Open-Meteo, SGC · Proyecto académico UCC Pasto',
+
+  // --- Niveles de riesgo y amenazas
+  'risk.level.BAJO': 'Bajo',
+  'risk.level.MODERADO': 'Moderado',
+  'risk.level.ALTO': 'Alto',
+  'risk.level.MUY_ALTO': 'Muy alto',
+  'risk.level.SIN_EVALUAR': 'Sin evaluar',
+  'risk.badge': 'Riesgo {level}',
+  'risk.alert.BAJO': 'Sin alerta',
+  'risk.alert.MODERADO': 'Alerta amarilla',
+  'risk.alert.ALTO': 'Alerta naranja',
+  'risk.alert.MUY_ALTO': 'Alerta roja',
+  'risk.rec.BAJO.1': 'Condiciones normales para su zona.',
+  'risk.rec.BAJO.2': 'Mantenga actualizado su plan familiar de emergencia.',
+  'risk.rec.MODERADO.1': 'Esté atento a los boletines de gestión del riesgo.',
+  'risk.rec.MODERADO.2': 'Limpie canales, cunetas y desagües cercanos a su vivienda.',
+  'risk.rec.MODERADO.3': 'Identifique la ruta de evacuación y el punto de encuentro.',
+  'risk.rec.ALTO.1': 'Prepare el kit de emergencia: agua, linterna, radio, botiquín y documentos.',
+  'risk.rec.ALTO.2': 'Observe grietas en muros o suelo, árboles inclinados o agua turbia en quebradas.',
+  'risk.rec.ALTO.3': 'Esté listo para evacuar ante cualquier señal.',
+  'risk.rec.MUY_ALTO.1': 'Evacúe hacia una zona segura, alejada de laderas y cauces.',
+  'risk.rec.MUY_ALTO.2': 'No cruce ríos ni quebradas crecidas.',
+  'risk.rec.MUY_ALTO.3': 'Llame a la línea de emergencias 123.',
+  'hazard.DESLIZAMIENTO': 'Deslizamiento',
+  'hazard.CRECIENTE': 'Creciente de río',
+  'hazard.MIXTO': 'Deslizamiento y creciente',
+
+  // --- Variables del modelo
+  'feature.rain_24h_mm': 'Lluvia últimas 24 h',
+  'feature.rain_72h_mm': 'Lluvia últimas 72 h',
+  'feature.rain_7d_mm': 'Lluvia últimos 7 días',
+  'feature.rain_forecast_24h_mm': 'Lluvia pronosticada 24 h',
+  'feature.soil_moisture': 'Humedad del suelo',
+  'feature.river_discharge_ratio': 'Caudal vs. habitual',
+  'feature.slope_deg': 'Pendiente del terreno',
+  'feature.susceptibility': 'Susceptibilidad (SGC)',
+
+  // --- Factores que explican el nivel (calculados en el dispositivo)
+  'factor.rain72.veryHigh': 'Lluvia acumulada muy alta en 72 h ({mm} mm)',
+  'factor.rain72.high': 'Lluvia acumulada alta en 72 h ({mm} mm)',
+  'factor.forecast': 'Se pronostican {mm} mm en las próximas 24 h',
+  'factor.soil': 'Suelo saturado de agua',
+  'factor.discharge': 'Caudal del río {ratio} veces por encima de lo habitual',
+  'factor.susceptibility': 'Zona de susceptibilidad alta a movimientos en masa',
+  'factor.slope': 'Pendiente pronunciada del terreno ({deg}°)',
+
+  // --- Tarjeta de zona y mapa
+  'zone.confidence': 'Confianza {pct} %',
+  'zone.distance': 'a {km} km',
+  'map.title': 'Mapa esquemático de zonas. {summary}',
+  'map.you': 'Su ubicación',
+  'map.note': 'Esquema, no a escala de calles',
+
+  // --- Conexión, actualización, instalación, errores
+  'conn.offline': 'Sin conexión.',
+  'conn.serverDown': 'El servidor no responde.',
+  'conn.showingSaved': 'Mostrando los últimos datos guardados (actualizados {ago}).',
+  'conn.noData': 'Aún no hay datos guardados en este dispositivo.',
+  'update.available': 'Hay una nueva versión disponible.',
+  'install.label': 'Instalar la aplicación',
+  'install.title': 'Instale AlertaSinRed en su celular',
+  'install.prompt': 'Quedará en la pantalla de inicio y abrirá aunque no tenga internet.',
+  'install.ios': 'En Safari toque Compartir y luego Agregar a inicio.',
+  'install.cta': 'Instalar',
+  'error.title': 'Algo falló al mostrar esta pantalla',
+  'error.body': 'Sus datos guardados siguen a salvo. Puede volver al inicio o recargar la página.',
+  'error.emergency': 'En emergencia llame al 123.',
+  'error.home': 'Ir al inicio',
+  'error.reload': 'Recargar',
+  'notFound.title': 'Página no encontrada',
+  'notFound.code': 'Error 404',
+  'notFound.heading': 'Esta página no existe',
+  'notFound.body': 'Puede que el enlace esté incompleto o haya cambiado.',
+  'notFound.zones': 'Ver el riesgo de las zonas',
+
+  // --- Filtros
+  'filter.search': 'Buscar por zona o municipio…',
+  'filter.searchLabel': 'Buscar zona por nombre o municipio',
+  'filter.levels': 'Filtrar por nivel de riesgo',
+  'filter.showing': 'Mostrando {shown} de {total} zonas',
+  'filter.none': 'ninguna coincide con la búsqueda',
+
+  // --- Compartir y avisos del dispositivo
+  'share.button': 'Compartir esta alerta',
+  'share.copied': 'Texto copiado: péguelo en WhatsApp o en un mensaje.',
+  'share.failed': 'No se pudo compartir en este dispositivo.',
+  'share.noAssessment': 'AlertaSinRed: consulte el riesgo de deslizamiento y creciente en {zone}. {url}',
+  'share.headline': '{alert} · {zone}: riesgo {level}.',
+  'share.call': 'En emergencia llame al 123.',
+  'share.more': 'Más información: {url}',
+  'deviceAlerts.on': 'Avisos en este celular: activados',
+  'deviceAlerts.off': 'Avisarme en este celular',
+  'deviceAlerts.blocked': 'Las notificaciones están bloqueadas para este sitio; actívelas en la configuración del navegador.',
+  'deviceAlerts.title': '{alert}: {zone}',
+  'deviceAlerts.body': 'Riesgo {level}. {action}',
+}
+
+export type MessageKey = keyof typeof es
+export type Messages = Record<MessageKey, string>

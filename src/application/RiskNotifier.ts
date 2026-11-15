@@ -1,5 +1,7 @@
 import { RISK_LEVELS } from '../domain/riskLevel'
 import type { RiskSnapshot } from '../domain/types'
+import { alertLabel, levelLabel, recommendations } from '../i18n/domain'
+import { createTranslator } from '../i18n/translator'
 import type { PreferencesRepository } from '../infrastructure/storage/PreferencesRepository'
 
 /** Muestra una notificación del sistema (en la página o en el Service Worker). */
@@ -32,8 +34,13 @@ export class RiskNotifier {
     const last = await this.preferences.lastNotifiedSeverity(zoneId)
 
     if (info.severity >= NOTIFY_FROM_SEVERITY && info.severity > (last ?? -1)) {
-      await this.notifier.show(`${info.alert}: ${item.zone.name}`, {
-        body: `Riesgo ${info.label.toLowerCase()}. ${info.recommendations[0] ?? ''}`,
+      const translator = createTranslator(await this.preferences.language())
+      const level = item.assessment.level
+      await this.notifier.show(translator.t('deviceAlerts.title', { alert: alertLabel(translator, level), zone: item.zone.name }), {
+        body: translator.t('deviceAlerts.body', {
+          level: levelLabel(translator, level),
+          action: recommendations(translator, level)[0] ?? '',
+        }),
         url: `/zona/${zoneId}`,
         tag: `riesgo-${zoneId}`, // reemplaza la notificación anterior de la misma zona
       })

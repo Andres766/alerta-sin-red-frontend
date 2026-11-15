@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
+import { useI18n } from '../i18n/I18nProvider'
 
 /**
  * En una SPA cambiar de ruta no recarga la página, así que el lector de pantalla
@@ -7,6 +8,7 @@ import { useLocation } from 'react-router-dom'
  * foco al contenido principal (patrón recomendado para enrutamiento en cliente).
  */
 export function RouteAnnouncer({ mainId }: { mainId: string }) {
+  const { t } = useI18n()
   const { pathname } = useLocation()
   const [message, setMessage] = useState('')
   // En la carga inicial el navegador ya anuncia la página: solo se actúa al cambiar.
@@ -27,7 +29,7 @@ export function RouteAnnouncer({ mainId }: { mainId: string }) {
 
   return (
     <p className="sr-only" aria-live="polite" aria-atomic="true">
-      {message && `Página: ${message}`}
+      {message && t('app.page', { title: message })}
     </p>
   )
 }

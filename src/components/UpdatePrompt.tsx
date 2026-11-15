@@ -1,7 +1,9 @@
 import { useRegisterSW } from 'virtual:pwa-register/react'
+import { useI18n } from '../i18n/I18nProvider'
 
 /** Avisa cuando hay una versión nueva de la app en lugar de recargar por sorpresa. */
 export function UpdatePrompt() {
+  const { t } = useI18n()
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
@@ -14,16 +16,16 @@ export function UpdatePrompt() {
   if (!needRefresh) return null
   return (
     <div className="fixed inset-x-4 bottom-4 z-50 mx-auto flex max-w-md items-center justify-between gap-3 rounded-md bg-primary p-4 text-sm text-on-primary shadow-lg">
-      <span>Hay una nueva versión disponible.</span>
+      <span>{t('update.available')}</span>
       <div className="flex gap-2">
         <button className="rounded-lg px-3 py-1.5 text-on-primary/70" onClick={() => setNeedRefresh(false)}>
-          Luego
+          {t('common.later')}
         </button>
         <button
           className="rounded-lg bg-surface px-3 py-1.5 font-semibold text-fg"
           onClick={() => void updateServiceWorker(true)}
         >
-          Actualizar
+          {t('common.update')}
         </button>
       </div>
     </div>

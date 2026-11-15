@@ -13,6 +13,8 @@ import { useSnapshot } from '../hooks/useSnapshot'
 import { ApiError } from '../infrastructure/http/ApiClient'
 import { adminService } from '../services'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { levelLabel } from '../i18n/domain'
+import { useI18n } from '../i18n/I18nProvider'
 
 const ROLE_LABEL: Record<Role, string> = { ADMIN: 'Administrador', OPERATOR: 'Operador' }
 
@@ -100,6 +102,7 @@ function StatTile({ label, value, hint }: { label: string; value: ReactNode; hin
 }
 
 function LevelDistribution({ stats }: { stats: DashboardStats }) {
+  const translator = useI18n()
   const total = Math.max(stats.zones, 1)
   return (
     <div className="rounded-lg border border-line bg-surface p-4">
@@ -113,7 +116,7 @@ function LevelDistribution({ stats }: { stats: DashboardStats }) {
         {[...LEVEL_ORDER].reverse().map((lvl) => (
           <li key={lvl} className="flex items-center gap-1.5">
             <span className={`size-2.5 rounded-full ${RISK_LEVELS[lvl].stripe}`} />
-            {RISK_LEVELS[lvl].label}: <strong>{stats.zones_by_level[lvl]}</strong>
+            {levelLabel(translator, lvl)}: <strong>{stats.zones_by_level[lvl]}</strong>
           </li>
         ))}
         {stats.zones_by_level.SIN_EVALUAR > 0 && (

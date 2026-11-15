@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { preferences } from '../services'
 import { IconBell } from './icons'
+import { useI18n } from '../i18n/I18nProvider'
 
 type Status = 'unsupported' | 'denied' | 'off' | 'on'
 
 /** Activa los avisos en este celular cuando "mi zona" sube a riesgo alto. */
 export function DeviceAlertsToggle() {
+  const { t } = useI18n()
   const supported = typeof Notification !== 'undefined' && 'serviceWorker' in navigator
   const [status, setStatus] = useState<Status>(supported ? 'off' : 'unsupported')
 
@@ -37,7 +39,7 @@ export function DeviceAlertsToggle() {
   if (status === 'denied') {
     return (
       <p className="text-xs text-muted">
-        Las notificaciones están bloqueadas para este sitio; actívelas en la configuración del navegador.
+        {t('deviceAlerts.blocked')}
       </p>
     )
   }
@@ -49,7 +51,7 @@ export function DeviceAlertsToggle() {
       className={`flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-semibold transition ${status === 'on' ? 'border-positive-ink/30 bg-positive-bg text-positive-ink' : 'border-control bg-surface text-fg hover:bg-raised'}`}
     >
       <IconBell className="size-4" />
-      {status === 'on' ? 'Avisos en este celular: activados' : 'Avisarme en este celular'}
+      {status === 'on' ? t('deviceAlerts.on') : t('deviceAlerts.off')}
     </button>
   )
 }

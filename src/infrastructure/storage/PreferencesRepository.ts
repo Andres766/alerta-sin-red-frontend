@@ -1,3 +1,4 @@
+import type { Language } from '../../i18n/translator'
 import type { AppDatabase } from './database'
 
 /**
@@ -21,6 +22,15 @@ export class PreferencesRepository {
 
   setNotificationsEnabled(enabled: boolean): Promise<void> {
     return this.set('notificationsEnabled', enabled ? '1' : null)
+  }
+
+  /** Idioma de la interfaz; el Service Worker lo usa para redactar las notificaciones. */
+  async language(): Promise<Language> {
+    return (await this.get('language')) === 'en' ? 'en' : 'es'
+  }
+
+  setLanguage(lang: Language): Promise<void> {
+    return this.set('language', lang)
   }
 
   /** Severidad (0–3) del último aviso mostrado para una zona, o null si no hay aviso vigente. */

@@ -10,10 +10,12 @@ import { HowItWorksPage } from './pages/HowItWorksPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { SubscribePage } from './pages/SubscribePage'
 import { ZonePage } from './pages/ZonePage'
+import { I18nProvider } from './i18n/I18nProvider'
 
 export default function App() {
   return (
     <ThemeProvider>
+      <I18nProvider>
     <BrowserRouter>
       <SnapshotProvider>
         <FavoriteZoneProvider>
@@ -32,6 +34,7 @@ export default function App() {
         </FavoriteZoneProvider>
       </SnapshotProvider>
     </BrowserRouter>
+    </I18nProvider>
     </ThemeProvider>
   )
 }

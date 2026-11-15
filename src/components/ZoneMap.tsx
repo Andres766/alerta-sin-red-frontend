@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router-dom'
 import type { LatLon } from '../domain/geo'
 import { NOT_EVALUATED_COLOR, RISK_LEVELS } from '../domain/riskLevel'
 import type { ZoneRisk } from '../domain/types'
+import { levelLabel } from '../i18n/domain'
+import { useI18n } from '../i18n/I18nProvider'
 
 const WIDTH = 400
 const HEIGHT = 240
@@ -39,6 +41,8 @@ function placeLabel(x: number, y: number, text: string, placed: Box[]) {
  */
 export function ZoneMap({ items, user }: { items: ZoneRisk[]; user?: LatLon | null }) {
   const navigate = useNavigate()
+  const translator = useI18n()
+  const { t } = translator
   if (items.length === 0) return null
 
   const points = [...items.map((i) => i.zone), ...(user ? [user] : [])]
@@ -63,7 +67,7 @@ export function ZoneMap({ items, user }: { items: ZoneRisk[]; user?: LatLon | nu
       (b.assessment ? RISK_LEVELS[b.assessment.level].severity : -1),
   )
   const summary = items
-    .map((i) => `${i.zone.name}: ${i.assessment ? RISK_LEVELS[i.assessment.level].label : 'sin evaluar'}`)
+    .map((i) => `${i.zone.name}: ${levelLabel(translator, i.assessment?.level)}`)
     .join('; ')
 
   return (
@@ -71,7 +75,7 @@ export function ZoneMap({ items, user }: { items: ZoneRisk[]; user?: LatLon | nu
       {/* Sin role="img": ese rol vuelve "presentacionales" a los hijos y ocultaba los
           enlaces de cada zona a los lectores de pantalla. */}
       <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} aria-labelledby="mapa-titulo" className="block w-full">
-        <title id="mapa-titulo">{`Mapa esquemático de zonas. ${summary}`}</title>
+        <title id="mapa-titulo">{t('map.title', { summary })}</title>
         <defs>
           <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
             <path d="M20 0H0V20" fill="none" className="stroke-line" strokeWidth="0.6" />
@@ -128,9 +132,9 @@ export function ZoneMap({ items, user }: { items: ZoneRisk[]; user?: LatLon | nu
         {user && (() => {
           const { x, y } = project(user)
           return (
-            <g aria-label="Su ubicación">
-              <circle cx={x} cy={y} r={11} fill="#0284c7" opacity={0.18} />
-              <circle cx={x} cy={y} r={5} fill="#0284c7" className="stroke-surface" strokeWidth={2} />
+            <g aria-label={t('map.you')}>
+              <circle cx={x} cy={y} r={11} className="fill-info-ink" opacity={0.18} />
+              <circle cx={x} cy={y} r={5} className="fill-info-ink stroke-surface" strokeWidth={2} />
             </g>
           )
         })()}
@@ -139,15 +143,15 @@ export function ZoneMap({ items, user }: { items: ZoneRisk[]; user?: LatLon | nu
         {(['BAJO', 'MODERADO', 'ALTO', 'MUY_ALTO'] as const).map((lvl) => (
           <span key={lvl} className="inline-flex items-center gap-1.5">
             <span className="size-2.5 rounded-full" style={{ backgroundColor: RISK_LEVELS[lvl].color }} />
-            {RISK_LEVELS[lvl].label}
+            {levelLabel(translator, lvl)}
           </span>
         ))}
         {user && (
           <span className="inline-flex items-center gap-1.5">
-            <span className="size-2.5 rounded-full bg-sky-600" /> Usted
+            <span className="size-2.5 rounded-full bg-info-ink" /> {t('common.you')}
           </span>
         )}
-        <span className="ml-auto text-faint">Esquema, no a escala de calles</span>
+        <span className="ml-auto text-faint">{t('map.note')}</span>
       </figcaption>
     </figure>
   )

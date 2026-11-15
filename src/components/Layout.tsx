@@ -6,20 +6,24 @@ import { IconBell, IconHome, IconShield } from './icons'
 import { ThemeToggle } from './ThemeToggle'
 import { UpdatePrompt } from './UpdatePrompt'
 import { RouteAnnouncer } from './RouteAnnouncer'
+import type { MessageKey } from '../i18n/es'
+import { useI18n } from '../i18n/I18nProvider'
+import { LanguageToggle } from './LanguageToggle'
 
 interface NavItem {
   to: string
-  label: string
+  label: MessageKey
   icon: ComponentType<SVGProps<SVGSVGElement>>
 }
 
 const links: NavItem[] = [
-  { to: '/', label: 'Mi zona', icon: IconHome },
-  { to: '/suscribirme', label: 'Alertas SMS', icon: IconBell },
-  { to: '/operador', label: 'Operador', icon: IconShield },
+  { to: '/', label: 'nav.zones', icon: IconHome },
+  { to: '/suscribirme', label: 'nav.alerts', icon: IconBell },
+  { to: '/operador', label: 'nav.operator', icon: IconShield },
 ]
 
 export function Layout() {
+  const { t } = useI18n()
   const { pathname } = useLocation()
   return (
     <div className="flex min-h-dvh flex-col">
@@ -27,7 +31,7 @@ export function Layout() {
         href="#contenido"
         className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-3 focus:py-2 focus:text-fg"
       >
-        Saltar al contenido
+        {t('app.skip')}
       </a>
       <header className="sticky top-0 z-40 bg-slate-900/95 text-white shadow backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-3">
@@ -35,12 +39,12 @@ export function Layout() {
             <img src="/icons/icon.svg" alt="" className="size-8" />
             <span className="leading-tight">
               AlertaSinRed
-              <span className="block text-[11px] font-normal text-faint">Riesgo climático · Nariño y Putumayo</span>
+              <span className="block text-[11px] font-normal text-faint">{t('app.scope')}</span>
             </span>
           </NavLink>
           {/* Escritorio: navegación arriba */}
           <div className="flex items-center gap-3">
-          <nav aria-label="Principal" className="hidden gap-1 text-sm sm:flex">
+          <nav aria-label={t('nav.label')} className="hidden gap-1 text-sm sm:flex">
             {links.map((l) => (
               <NavLink
                 key={l.to}
@@ -51,10 +55,11 @@ export function Layout() {
                 }
               >
                 <l.icon className="size-4" />
-                {l.label}
+                {t(l.label)}
               </NavLink>
             ))}
           </nav>
+          <LanguageToggle />
           <ThemeToggle />
           </div>
         </div>
@@ -70,14 +75,13 @@ export function Layout() {
       </main>
 
       <footer className="hidden border-t border-line py-4 text-center text-xs text-muted sm:block">
-        En emergencia llame al <strong>123</strong> ·{' '}
-        <NavLink to="/como-funciona" className="underline hover:text-fg">Cómo funciona</NavLink> · Datos:
-        Open-Meteo, SGC · Proyecto académico UCC Pasto
+        {t('app.emergency', { phone: '123' })} ·{' '}
+        <NavLink to="/como-funciona" className="underline hover:text-fg">{t('nav.how')}</NavLink> · {t('footer.data')}
       </footer>
 
       {/* Móvil: barra inferior, al alcance del pulgar */}
       <nav
-        aria-label="Principal"
+        aria-label={t('nav.label')}
         className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden"
       >
         <div className="grid grid-cols-3">
@@ -95,7 +99,7 @@ export function Layout() {
                   <span className={`rounded-full px-4 py-1 ${isActive ? 'bg-primary text-on-primary' : ''}`}>
                     <l.icon className="size-5" />
                   </span>
-                  {l.label}
+                  {t(l.label)}
                 </>
               )}
             </NavLink>
