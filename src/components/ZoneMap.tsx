@@ -6,7 +6,7 @@ import { levelLabel } from '../i18n/domain'
 import { useI18n } from '../i18n/I18nProvider'
 
 const WIDTH = 400
-const HEIGHT = 240
+const HEIGHT = 260
 const PAD = 34
 const CHAR_WIDTH = 6.2 // ancho aproximado de un carácter a 11 px
 
@@ -17,8 +17,19 @@ interface Box {
   y2: number
 }
 
-/** Prueba derecha, izquierda, abajo y arriba del punto; usa la primera que quepa sin chocar. */
-function placeLabel(x: number, y: number, text: string, placed: Box[]) {
+interface Placement {
+  x: number
+  y: number
+  anchor: 'start' | 'end' | 'middle'
+  box: Box
+}
+
+/**
+ * Prueba derecha, izquierda, abajo y arriba del punto y usa la primera posición que
+ * no choque con otra etiqueta ni con un punto. Si ninguna cabe, no hay etiqueta:
+ * el punto conserva su nombre accesible y su enlace.
+ */
+function placeLabel(x: number, y: number, text: string, placed: Box[]): Placement | null {
   const w = text.length * CHAR_WIDTH
   const candidates = [
     { x: x + 12, y: y + 4, anchor: 'start' as const, box: { x1: x + 12, y1: y - 7, x2: x + 12 + w, y2: y + 5 } },
@@ -29,9 +40,9 @@ function placeLabel(x: number, y: number, text: string, placed: Box[]) {
   const fits = (b: Box) =>
     b.x1 >= 2 && b.x2 <= WIDTH - 2 && b.y1 >= 2 && b.y2 <= HEIGHT - 2 &&
     !placed.some((p) => b.x1 < p.x2 && b.x2 > p.x1 && b.y1 < p.y2 && b.y2 > p.y1)
-  const choice = candidates.find((c) => fits(c.box)) ?? candidates[1]!
-  placed.push(choice.box)
-  return choice
+  const choice = candidates.find((c) => fits(c.box))
+  if (choice) placed.push(choice.box)
+  return choice ?? null
 }
 
 /**
@@ -59,13 +70,29 @@ export function ZoneMap({ items, user }: { items: ZoneRisk[]; user?: LatLon | nu
     y: HEIGHT / 2 - (p.latitude - cy) * scale,
   })
 
-  // Una etiqueta por municipio, ubicada donde no choque con otras ni se salga del borde.
+  const severity = (i: ZoneRisk) => (i.assessment ? RISK_LEVELS[i.assessment.level].severity : -1)
+  // Con muchas zonas cercanas los puntos se achican para no taparse.
+  const radius = items.length > 12 ? 6 : 7.5
+  // Los puntos se dibujan de menor a mayor riesgo: el más grave queda encima.
+  const ordered = [...items].sort((a, b) => severity(a) - severity(b))
+
+  // Una etiqueta por municipio. Primero se reservan los puntos; luego se ubican las
+  // etiquetas empezando por las zonas de mayor riesgo, que son las que más importan.
+  const placed: Box[] = items.map(({ zone }) => {
+    const { x, y } = project(zone)
+    return { x1: x - radius - 1, y1: y - radius - 1, x2: x + radius + 1, y2: y + radius + 1 }
+  })
+  const labels = new Map<string, Placement>()
   const labeled = new Set<string>()
-  const placed: Box[] = []
-  const ordered = [...items].sort(
-    (a, b) => (a.assessment ? RISK_LEVELS[a.assessment.level].severity : -1) -
-      (b.assessment ? RISK_LEVELS[b.assessment.level].severity : -1),
-  )
+  for (const { zone } of [...items].sort((a, b) => severity(b) - severity(a))) {
+    if (labeled.has(zone.municipality)) continue
+    const { x, y } = project(zone)
+    const placement = placeLabel(x, y, zone.municipality, placed)
+    if (placement) {
+      labels.set(zone.id, placement)
+      labeled.add(zone.municipality)
+    }
+  }
   const summary = items
     .map((i) => `${i.zone.name}: ${levelLabel(translator, i.assessment?.level)}`)
     .join('; ')
@@ -87,8 +114,7 @@ export function ZoneMap({ items, user }: { items: ZoneRisk[]; user?: LatLon | nu
           const { x, y } = project(zone)
           const color = assessment ? RISK_LEVELS[assessment.level].color : NOT_EVALUATED_COLOR
           const urgent = assessment ? RISK_LEVELS[assessment.level].severity >= 2 : false
-          const showLabel = !labeled.has(zone.municipality)
-          labeled.add(zone.municipality)
+          const label = labels.get(zone.id)
           const href = `/zona/${zone.id}`
           return (
             // Enlace SVG real: enfocable, se puede abrir en otra pestaña y lo anuncian
@@ -105,12 +131,10 @@ export function ZoneMap({ items, user }: { items: ZoneRisk[]; user?: LatLon | nu
               }}
             >
               {urgent && (
-                <circle cx={x} cy={y} r={9} style={{ fill: color }} opacity={0.35} className="map-pulse" />
+                <circle cx={x} cy={y} r={radius + 1.5} style={{ fill: color }} opacity={0.35} className="map-pulse" />
               )}
-              <circle cx={x} cy={y} r={7.5} style={{ fill: color }} className="stroke-surface" strokeWidth={2.5} />
-              {showLabel && (() => {
-                const label = placeLabel(x, y, zone.municipality, placed)
-                return (
+              <circle cx={x} cy={y} r={radius} style={{ fill: color }} className="stroke-surface" strokeWidth={2} />
+              {label && (
                 <text
                   x={label.x}
                   y={label.y}
@@ -124,8 +148,7 @@ export function ZoneMap({ items, user }: { items: ZoneRisk[]; user?: LatLon | nu
                 >
                   {zone.municipality}
                 </text>
-                )
-              })()}
+              )}
             </a>
           )
         })}
