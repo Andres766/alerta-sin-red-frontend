@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { DailyRiskStrip } from '../components/DailyRiskStrip'
 import { HazardIcon } from '../components/HazardIcon'
 import { IconAlert, IconBell, IconSparkles, IconStar } from '../components/icons'
 import { RelativeTime } from '../components/RelativeTime'
@@ -7,7 +8,7 @@ import { RiskBadge } from '../components/RiskBadge'
 import { ShareButton } from '../components/ShareButton'
 import { FEATURE_UNIT, LEVEL_ORDER, RISK_LEVELS } from '../domain/riskLevel'
 import { formatDateTime } from '../domain/time'
-import type { Assessment, ZoneRisk } from '../domain/types'
+import type { Assessment, DayRisk, ZoneRisk } from '../domain/types'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useFavoriteZone } from '../hooks/useFavoriteZone'
 import { useSnapshot } from '../hooks/useSnapshot'
@@ -48,6 +49,7 @@ export function ZonePage() {
   // Enlace directo a una zona que este dispositivo aún no tiene guardada.
   const [fetched, setFetched] = useState<{ id: string; item: ZoneRisk | null; error?: string } | null>(null)
   const [history, setHistory] = useState<Assessment[]>([])
+  const [days, setDays] = useState<DayRisk[]>([])
   const item = fromSnapshot ?? (fetched && fetched.id === zoneId ? fetched.item : undefined)
   useDocumentTitle(item ? item.zone.name : t('zone.docTitle'))
 
@@ -70,6 +72,7 @@ export function ZonePage() {
     let active = true
     // Pasa por el Service Worker (stale-while-revalidate): también funciona offline.
     void riskService.history(zoneId).then((list) => active && setHistory(list))
+    void riskService.daily(zoneId).then((list) => active && setDays(list))
     return () => {
       active = false
     }
@@ -217,28 +220,26 @@ export function ZonePage() {
         )}
 
         <Panel area="history" title={t('zone.history')}>
-          {history.length > 1 ? (
+          {days.length > 0 && <DailyRiskStrip days={days} />}
+          {history.length > 0 && (
             <>
-              <div className="flex h-14 items-end gap-1" aria-hidden>
-                {[...history].reverse().map((h) => (
-                  <div
-                    key={h.id}
-                    title={`${formatDateTime(h.assessed_at, locale)}: ${levelLabel(translator, h.level)}`}
-                    className={`flex-1 rounded-t-sm ${RISK_LEVELS[h.level].stripe}`}
-                    style={{ height: `${25 + RISK_LEVELS[h.level].severity * 25}%` }}
-                  />
-                ))}
-              </div>
-              <ol className="mt-4 divide-y divide-rule text-sm">
+              <h3 className={`text-sm font-medium ${days.length > 0 ? 'mt-6' : ''}`}>{t('zone.latest')}</h3>
+              <ol className="mt-1 divide-y divide-rule text-sm">
                 {history.slice(0, 5).map((h) => (
                   <li key={h.id} className="flex items-center justify-between gap-3 py-2">
-                    <span className="text-muted">{formatDateTime(h.assessed_at, locale)}</span>
+                    <span className="text-muted">
+                      <span className="whitespace-nowrap">{formatDateTime(h.assessed_at, locale)}</span>
+                      {h.weather_source.endsWith('historico') && (
+                        <span className="ml-1.5 rounded bg-active px-1.5 py-0.5 text-[11px]">{t('zone.historical')}</span>
+                      )}
+                    </span>
                     <RiskBadge level={h.level} />
                   </li>
                 ))}
               </ol>
             </>
-          ) : (
+          )}
+          {days.length === 0 && history.length === 0 && (
             <p className="text-sm text-muted">{t('zone.historyEmpty')}</p>
           )}
         </Panel>

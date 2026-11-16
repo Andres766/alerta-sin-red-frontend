@@ -395,4 +395,14 @@ export const en: Messages = {
   'login.audit': 'Restricted access. Every sign-in, successful or failed, is recorded in the audit log.',
   'login.noAccount': 'No account? Accounts are created by an administrator from the panel.',
   'login.back': 'See zone risk',
+
+  // --- 30-day history
+  'zone.last30': 'Last 30 days',
+  'zone.today': 'Today',
+  'zone.alertDays': 'Days on orange or red alert: {count} of {total}',
+  'zone.dayTitle': '{date}: {level} risk ({count} assessment(s))',
+  'zone.dayEmpty': '{date}: no assessments',
+  'zone.stripLabel': 'Worst risk level of each day. {summary}',
+  'zone.latest': 'Latest assessments',
+  'zone.historical': 'historical',
 }

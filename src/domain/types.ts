@@ -28,6 +28,14 @@ export interface Assessment {
   assessed_at: string
 }
 
+/** Peor nivel de riesgo de un día (hora de Colombia). */
+export interface DayRisk {
+  day: string
+  level: RiskLevel
+  probability: number
+  evaluations: number
+}
+
 export interface ZoneRisk {
   zone: Zone
   assessment: Assessment | null

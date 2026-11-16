@@ -84,10 +84,10 @@ registerRoute(
   new StaleWhileRevalidate({ cacheName: 'api-model', plugins: [new ExpirationPlugin({ maxEntries: 1 })] }),
 )
 registerRoute(
-  ({ url, request }) => request.method === 'GET' && /\/zones\/[^/]+\/history$/.test(url.pathname),
+  ({ url, request }) => request.method === 'GET' && /\/zones\/[^/]+\/(history|days)$/.test(url.pathname),
   new StaleWhileRevalidate({
     cacheName: 'api-history',
-    plugins: [new ExpirationPlugin({ maxEntries: 30, maxAgeSeconds: 7 * 24 * 3600 })],
+    plugins: [new ExpirationPlugin({ maxEntries: 60, maxAgeSeconds: 7 * 24 * 3600 })],
   }),
 )
 

@@ -397,6 +397,16 @@ export const es = {
   'login.audit': 'Acceso restringido. Cada ingreso, correcto o fallido, queda en la bitácora de auditoría.',
   'login.noAccount': '¿Sin cuenta? Las cuentas las crea un administrador desde el panel.',
   'login.back': 'Ver el riesgo de las zonas',
+
+  // --- Historial de 30 días
+  'zone.last30': 'Últimos 30 días',
+  'zone.today': 'Hoy',
+  'zone.alertDays': 'Días en alerta naranja o roja: {count} de {total}',
+  'zone.dayTitle': '{date}: riesgo {level} ({count} evaluación(es))',
+  'zone.dayEmpty': '{date}: sin evaluaciones',
+  'zone.stripLabel': 'Peor nivel de riesgo de cada día. {summary}',
+  'zone.latest': 'Últimas evaluaciones',
+  'zone.historical': 'histórico',
 }
 
 export type MessageKey = keyof typeof es

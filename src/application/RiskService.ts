@@ -1,5 +1,5 @@
 import { distanceKm, type LatLon } from '../domain/geo'
-import type { Assessment, DataSource, NearbyZone, RiskSnapshot, ZoneRisk } from '../domain/types'
+import type { Assessment, DataSource, DayRisk, NearbyZone, RiskSnapshot, ZoneRisk } from '../domain/types'
 import { ApiError, NetworkError, type ApiClient } from '../infrastructure/http/ApiClient'
 import type { SnapshotRepository } from '../infrastructure/storage/SnapshotRepository'
 
@@ -74,6 +74,16 @@ export class RiskService {
     if (!RiskService.isZoneId(zoneId)) return []
     try {
       return await this.api.get<Assessment[]>(`/zones/${encodeURIComponent(zoneId)}/history?limit=${limit}`)
+    } catch {
+      return []
+    }
+  }
+
+  /** Peor nivel de cada día de los últimos `days`; lista vacía si no se puede obtener. */
+  async daily(zoneId: string, days = 30): Promise<DayRisk[]> {
+    if (!RiskService.isZoneId(zoneId)) return []
+    try {
+      return await this.api.get<DayRisk[]>(`/zones/${encodeURIComponent(zoneId)}/days?days=${days}`)
     } catch {
       return []
     }

@@ -38,3 +38,16 @@ export function latestIso(isoDates: (string | null | undefined)[]): string | nul
     null,
   )
 }
+
+/** Fecha de hoy en Colombia (UTC-5, sin horario de verano) como "AAAA-MM-DD". */
+export function colombiaToday(now: number = Date.now()): string {
+  return new Date(now - 5 * 3600 * 1000).toISOString().slice(0, 10)
+}
+
+/** Los últimos `count` días terminando en `today`, del más antiguo al más reciente. */
+export function lastDays(today: string, count: number): string[] {
+  const end = Date.parse(`${today}T00:00:00Z`)
+  return Array.from({ length: count }, (_, k) =>
+    new Date(end - (count - 1 - k) * 86_400_000).toISOString().slice(0, 10),
+  )
+}
