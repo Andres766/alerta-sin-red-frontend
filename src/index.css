@@ -155,3 +155,43 @@
   .map-pulse { animation: none; }
   * { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
 }
+
+/* ---- Mapa real (Leaflet): mismos tokens que el resto de la app ------------------- */
+.leaflet-container {
+  background: var(--raised);
+  font-family: inherit;
+  font-size: 12px;
+}
+.leaflet-container:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+/* Las clases ganan a los atributos de presentación que pone Leaflet en los círculos. */
+.risk-dot { stroke: var(--surface); fill-opacity: 1; }
+.risk-dot-BAJO { fill: var(--risk-low); }
+.risk-dot-MODERADO { fill: var(--risk-moderate); }
+.risk-dot-ALTO { fill: var(--risk-high); }
+.risk-dot-MUY_ALTO { fill: var(--risk-extreme); }
+.risk-dot-none { fill: var(--risk-none); }
+.risk-dot-focus { stroke: var(--fg); }
+.user-dot { stroke: var(--surface); fill: var(--info-ink); fill-opacity: 1; }
+.leaflet-tooltip {
+  background: var(--surface);
+  color: var(--fg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: none;
+  padding: 6px 8px;
+  line-height: 1.35;
+}
+.leaflet-tooltip-top::before { border-top-color: var(--line); }
+.leaflet-bar { border: 1px solid var(--line) !important; box-shadow: none !important; }
+.leaflet-bar a {
+  background: var(--surface);
+  color: var(--fg);
+  border-bottom-color: var(--line);
+}
+.leaflet-bar a:hover { background: var(--raised); color: var(--fg); }
+.leaflet-control-attribution {
+  background: color-mix(in srgb, var(--surface) 85%, transparent) !important;
+  color: var(--muted);
+  font-size: 10px;
+}
+.leaflet-control-attribution a { color: var(--muted); }

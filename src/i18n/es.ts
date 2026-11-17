@@ -407,6 +407,14 @@ export const es = {
   'zone.stripLabel': 'Peor nivel de riesgo de cada día. {summary}',
   'zone.latest': 'Últimas evaluaciones',
   'zone.historical': 'histórico',
+
+  // --- Mapa real
+  'map.realTitle': 'Mapa de riesgo de las zonas. {summary}',
+  'map.hint': 'Toque un punto para ver la zona',
+  'map.offline': 'Sin conexión: esquema de ubicación de las zonas',
+
+  // --- Mapa de la zona
+  'zone.mapTitle': 'Ubicación y terreno',
 }
 
 export type MessageKey = keyof typeof es

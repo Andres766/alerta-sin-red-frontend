@@ -405,4 +405,12 @@ export const en: Messages = {
   'zone.stripLabel': 'Worst risk level of each day. {summary}',
   'zone.latest': 'Latest assessments',
   'zone.historical': 'historical',
+
+  // --- Real map
+  'map.realTitle': 'Risk map of the zones. {summary}',
+  'map.hint': 'Tap a dot to open the zone',
+  'map.offline': 'Offline: schematic of zone locations',
+
+  // --- Zone map
+  'zone.mapTitle': 'Location and terrain',
 }

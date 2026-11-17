@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import { lazy, Suspense, useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { DeviceAlertsToggle } from '../components/DeviceAlertsToggle'
 import { IconChevronRight, IconMapPin, IconRefresh, IconSparkles, IconStar } from '../components/icons'
@@ -15,10 +15,14 @@ import { filterZones, type LevelFilter } from '../domain/zoneFilter'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useFavoriteZone } from '../hooks/useFavoriteZone'
 import { useNow } from '../hooks/useNow'
+import { useOnlineStatus } from '../hooks/useOnlineStatus'
 import { useSnapshot } from '../hooks/useSnapshot'
 import { useI18n } from '../i18n/I18nProvider'
 import { rich } from '../i18n/rich'
 import { riskService } from '../services'
+
+// Leaflet pesa ~45 KB: se descarga solo al mostrar el mapa.
+const RiskMap = lazy(() => import('../components/RiskMap'))
 
 type NearbyState =
   | { status: 'idle' }
@@ -62,6 +66,7 @@ export function HomePage() {
   const translator = useI18n()
   const { t } = translator
   const { data, loading, error, refresh } = useSnapshot()
+  const online = useOnlineStatus()
   const [nearby, setNearby] = useState<NearbyState>({ status: 'idle' })
   useDocumentTitle(t('home.docTitle'))
 
@@ -227,7 +232,14 @@ export function HomePage() {
         {items.length > 0 && (
           <section aria-labelledby="mapa" className="[grid-area:map]">
             <PanelHeading id="mapa">{t('home.map')}</PanelHeading>
-            <ZoneMap items={items} user={nearby.status === 'done' ? nearby.position : null} />
+            {online ? (
+              <Suspense fallback={<div className="h-80 animate-pulse rounded-lg border border-line bg-surface" aria-hidden />}>
+                <RiskMap items={items} user={nearby.status === 'done' ? nearby.position : null} />
+              </Suspense>
+            ) : (
+              // Sin red no hay mapa base: el esquema se dibuja en el dispositivo.
+              <ZoneMap items={items} user={nearby.status === 'done' ? nearby.position : null} />
+            )}
           </section>
         )}
 

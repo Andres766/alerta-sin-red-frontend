@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { DailyRiskStrip } from '../components/DailyRiskStrip'
 import { HazardIcon } from '../components/HazardIcon'
@@ -11,10 +11,13 @@ import { formatDateTime } from '../domain/time'
 import type { Assessment, DayRisk, ZoneRisk } from '../domain/types'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useFavoriteZone } from '../hooks/useFavoriteZone'
+import { useOnlineStatus } from '../hooks/useOnlineStatus'
 import { useSnapshot } from '../hooks/useSnapshot'
 import { alertLabel, featureLabel, hazardLabel, keyFactors, levelLabel, recommendations } from '../i18n/domain'
 import { useI18n } from '../i18n/I18nProvider'
 import { riskService } from '../services'
+
+const RiskMap = lazy(() => import('../components/RiskMap'))
 
 /** Panel con título; todas las secciones de la página comparten este marco. */
 function Panel({ title, icon, area, children }: { title: string; icon?: ReactNode; area: string; children: ReactNode }) {
@@ -44,6 +47,7 @@ export function ZonePage() {
   const { t, locale, number } = translator
   const { zoneId } = useParams()
   const { data } = useSnapshot()
+  const online = useOnlineStatus()
   const { favoriteId, setFavorite } = useFavoriteZone()
   const fromSnapshot = data?.snapshot.items.find((i) => i.zone.id === zoneId)
   // Enlace directo a una zona que este dispositivo aún no tiene guardada.
@@ -158,7 +162,15 @@ export function ZonePage() {
 
       {/* Dos columnas: la explicación a la izquierda; qué hacer e historial a la derecha.
           En celular, "Qué hacer" va primero. */}
-      <div className="grid gap-6 [grid-template-areas:'todo'_'why'_'history'] lg:grid-cols-[minmax(0,1fr)_360px] lg:grid-rows-[auto_1fr] lg:[grid-template-areas:'why_todo'_'why_history']">
+      <div className="grid gap-6 [grid-template-areas:'todo'_'map'_'why'_'history'] lg:grid-cols-[minmax(0,1fr)_360px] lg:grid-rows-[auto_auto_1fr] lg:[grid-template-areas:'map_map'_'why_todo'_'why_history']">
+        {/* Mapa real centrado en la zona: el relieve y los ríos explican el riesgo. Sin red se omite. */}
+        {online && (
+          <section style={{ gridArea: 'map' }} aria-label={t('zone.mapTitle')}>
+            <Suspense fallback={<div className="h-64 animate-pulse rounded-lg border border-line bg-surface" aria-hidden />}>
+              <RiskMap items={data?.snapshot.items ?? [item]} focusId={zone.id} className="h-64 lg:h-72" />
+            </Suspense>
+          </section>
+        )}
         {assessment && info && (
           <Panel area="todo" title={t('zone.todo')} icon={<IconAlert className="size-4.5 text-muted" />}>
             <ol className="space-y-3">
