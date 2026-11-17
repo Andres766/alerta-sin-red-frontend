@@ -9,6 +9,11 @@ describe('tiempo y antigüedad de los datos', () => {
     expect(timeAgo('2026-11-02T09:00:00Z', NOW)).toBe('hace 3 horas')
   })
 
+  it('un instante apenas en el futuro se muestra como "ahora"', () => {
+    expect(timeAgo('2026-11-02T12:00:12Z', NOW)).toBe('ahora')
+    expect(timeAgo('2026-11-02T12:00:12Z', NOW, 'en-US')).toBe('now')
+  })
+
   it('marca como desactualizado lo que pasa de 3 horas', () => {
     expect(isStale('2026-11-02T09:30:00Z', NOW)).toBe(false)
     expect(isStale('2026-11-02T08:59:00Z', NOW)).toBe(true)

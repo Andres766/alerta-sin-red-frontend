@@ -9,7 +9,7 @@ disponible cuando no hay internet, que es justo cuando más falta hace.
 |---|---|---|---|
 | App shell (HTML, JS, CSS, íconos) | Cache Storage | *Precache* (Workbox) | Al instalar una versión nueva del Service Worker |
 | Rutas de la SPA (`/zona/:id`…) | Cache Storage | `index.html` precacheado | Igual que el app shell |
-| Estado de riesgo (`/risk/snapshot`) | IndexedDB (`snapshot`) + Cache Storage | *Network-first* con respaldo local | Al abrir la app, al volver la red, con reintentos y cada hora con Periodic Sync |
+| Estado de riesgo (`/risk/snapshot`) | IndexedDB (`snapshot`) | *Network-first* con respaldo local (sin caché del Service Worker, para no mostrar una copia vieja como fresca) | Al abrir la app, al volver la red, con reintentos y cada hora con Periodic Sync |
 | Detalle de una zona visitada (`/zones/{id}`) | Cache Storage | *Network-first* (4 s) | Al abrir un enlace directo |
 | Historial de una zona | Cache Storage | *Stale-while-revalidate* | Cada vez que se consulta |
 | Ficha del modelo de IA (`/model`) | Cache Storage | *Stale-while-revalidate* | Al abrir "Cómo funciona" |

@@ -11,7 +11,9 @@ function relative(locale: string): Intl.RelativeTimeFormat {
 
 /** "hace 5 minutos" / "5 minutes ago"… para dejar claro qué tan viejo es un dato. */
 export function timeAgo(iso: string, now: number = Date.now(), locale = 'es-CO'): string {
-  const seconds = Math.round((new Date(iso).getTime() - now) / 1000)
+  // Un instante apenas en el futuro (relojes del servidor y del celular desfasados)
+  // se muestra como "ahora", no como "dentro de 12 segundos".
+  const seconds = Math.min(0, Math.round((new Date(iso).getTime() - now) / 1000))
   const abs = Math.abs(seconds)
   const format = relative(locale)
   if (abs < 60) return format.format(seconds, 'second')

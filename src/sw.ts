@@ -9,8 +9,8 @@
  * │ App shell (HTML, JS, CSS, │ Precache en la           │ La app abre sin red desde el  │
  * │ íconos)                   │ instalación              │ primer arranque offline       │
  * │ Navegación (rutas SPA)    │ index.html precacheado   │ /zona/:id funciona offline    │
- * │ GET /api/v1/risk/snapshot │ Network-first (4 s) +    │ Siempre lo más fresco; si no  │
- * │                           │ copia en IndexedDB       │ hay red, lo último conocido   │
+ * │ GET /api/v1/risk/snapshot │ Red; la app guarda su    │ Siempre lo más fresco; si no  │
+ * │                           │ copia en IndexedDB       │ responde, lo último y su fecha│
  * │ Historial de zona         │ Stale-while-revalidate   │ Útil pero no crítico          │
  * │ POST /subscriptions       │ Outbox + Background Sync │ Se envía al volver la señal   │
  * │ /admin/*, /auth/*         │ NUNCA se cachea          │ Datos privados y con token    │
@@ -62,14 +62,13 @@ registerRoute(
 )
 
 // ---- Datos de riesgo ------------------------------------------------------------
-registerRoute(
-  ({ url, request }) => request.method === 'GET' && url.pathname === `${API_BASE}/risk/snapshot`,
-  new NetworkFirst({
-    cacheName: 'api-snapshot',
-    networkTimeoutSeconds: 4,
-    plugins: [new ExpirationPlugin({ maxEntries: 1 })],
-  }),
-)
+// /risk/snapshot NO pasa por la caché del Service Worker: la app guarda su propia
+// copia en IndexedDB y, si el servidor no responde, la muestra avisando de cuándo es.
+// Una caché "network-first" con tiempo límite devolvía la copia vieja como si fuera
+// fresca mientras el servidor gratuito despertaba (~50 s), y la app decía "actualizado".
+self.addEventListener('activate', (event) => {
+  event.waitUntil(caches.delete('api-snapshot'))
+})
 registerRoute(
   ({ url, request }) =>
     request.method === 'GET' && /\/zones\/[0-9a-f-]{36}$/i.test(url.pathname),
